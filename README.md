@@ -130,6 +130,8 @@ TradeProp Journal is a modern, responsive web application that helps forex trade
 ## 🚧 Implementation Status
 
 ### ✅ Completed Features
+
+#### Frontend
 - [x] **Core UI Framework**: Complete component library with Radix UI
 - [x] **Navigation System**: Responsive sidebar and header navigation
 - [x] **Dashboard Layout**: Main dashboard with key metrics and overview
@@ -142,21 +144,61 @@ TradeProp Journal is a modern, responsive web application that helps forex trade
 - [x] **Theme System**: Dark/light mode toggle
 - [x] **Responsive Design**: Mobile-friendly layouts
 
-### 🔄 Partially Implemented
-- [ ] **Data Persistence**: Currently using mock data, needs backend integration
-- [ ] **Trade CRUD Operations**: Edit/delete functionality exists in UI but not connected
-- [ ] **Import/Export**: UI exists but functionality not implemented
-- [ ] **User Authentication**: No authentication system implemented
-- [ ] **Real-time Data**: Static data, needs live market data integration
+#### Backend Infrastructure
+- [x] **Express Server**: Complete Node.js/Express server with TypeScript
+- [x] **Database Layer**: MySQL connection pooling with transaction support
+- [x] **Authentication**: Discord OAuth 2.0 with Passport.js and JWT tokens
+- [x] **Security**: Helmet, CORS, rate limiting, input validation
+- [x] **File Handling**: Multer integration for trade screenshot uploads
+- [x] **Session Management**: MySQL-backed session store
 
-### ❌ Missing Features
-- [ ] **Backend API**: No server-side implementation
-- [ ] **Database Integration**: No data persistence layer
-- [ ] **User Management**: No user accounts or authentication
-- [ ] **Real Market Data**: No live price feeds
-- [ ] **Trade Execution**: No broker integration
-- [ ] **Notifications**: Notification system not implemented
-- [ ] **Mobile App**: Web-only, no native mobile app
+#### Database & Schema
+- [x] **Database Design**: Complete MySQL schema with proper relationships
+- [x] **Migration Scripts**: Automated database table creation
+- [x] **Seed Data**: Sample data generation for testing
+- [x] **Indexes**: Optimized database indexes for performance
+
+#### API Endpoints
+- [x] **Trades API**: Full CRUD with pagination, filtering, file uploads
+  - `GET /api/trades` - List trades with filtering and pagination
+  - `POST /api/trades` - Create new trade with screenshot upload
+  - `PUT /api/trades/:id` - Update existing trade
+  - `DELETE /api/trades/:id` - Delete trade and cleanup files
+- [x] **Analytics API**: Comprehensive trading performance metrics
+  - `GET /api/analytics` - Full analytics dashboard data
+  - `GET /api/analytics/summary` - Quick performance summary
+  - `GET /api/analytics/calendar` - Calendar activity data
+  - `GET /api/analytics/performance-by-symbol` - Symbol-specific metrics
+  - `GET /api/analytics/risk-metrics` - Risk management analytics
+- [x] **Accounts API**: Trading account management
+  - `GET /api/accounts` - List user accounts with statistics
+  - `POST /api/accounts` - Create new trading account
+  - `PUT /api/accounts/:id` - Update account details
+  - `DELETE /api/accounts/:id` - Delete account (with trade validation)
+- [x] **Settings API**: User preferences and configuration
+  - `GET /api/settings` - Get user settings
+  - `PUT /api/settings` - Update settings
+  - `POST /api/settings/reset` - Reset to defaults
+  - `GET /api/settings/export` - Export settings as JSON
+  - `POST /api/settings/import` - Import settings from JSON
+- [x] **Auth API**: Authentication and user management
+  - `GET /api/auth/discord` - Initiate Discord OAuth
+  - `GET /api/auth/discord/callback` - OAuth callback handler
+  - `GET /api/auth/me` - Get current user profile
+  - `GET /api/auth/status` - Check authentication status
+  - `POST /api/auth/logout` - User logout
+
+### 🔄 Partially Implemented
+- [ ] **Frontend-Backend Integration**: Backend is complete, frontend still uses mock data
+- [ ] **Discord OAuth Setup**: Implementation ready, needs Discord app configuration
+- [ ] **Environment Configuration**: Backend ready, needs environment variables
+
+### ❌ Remaining Tasks
+- [ ] **API Integration**: Replace frontend mock data with real API calls
+- [ ] **Authentication Flow**: Connect frontend auth components to backend
+- [ ] **Error Handling**: Implement proper error handling in frontend
+- [ ] **Environment Setup**: Configure Discord OAuth and database credentials
+- [ ] **Production Deployment**: Docker setup and hosting configuration
 
 ## 🎨 Design System
 
@@ -177,10 +219,52 @@ TradeProp Journal is a modern, responsive web application that helps forex trade
 - **Spacing**: Consistent spacing scale using Tailwind CSS
 - **Components**: Modular, reusable component architecture
 
+## 🏗️ Backend Architecture
+
+### Server Structure
+```
+server/
+├── config/
+│   └── database.ts              # MySQL connection and utilities
+├── middleware/
+│   └── auth.ts                  # Authentication middleware and Passport config
+├── routes/
+│   ├── auth.ts                  # Authentication endpoints
+│   ├── trades.ts                # Trade CRUD operations
+│   ├── analytics.ts             # Analytics and reporting
+│   ├── accounts.ts              # Account management
+│   └── settings.ts              # User settings
+├── scripts/
+│   ├── migrate.ts               # Database migration script
+│   └── seed.ts                  # Sample data seeding
+├── types/
+│   └── index.ts                 # TypeScript type definitions
+└── index.ts                     # Main server entry point
+```
+
+### Key Features
+- **TypeScript**: Full type safety across the backend
+- **Express.js**: RESTful API with comprehensive middleware
+- **MySQL**: Relational database with proper schema design
+- **Authentication**: Discord OAuth 2.0 with JWT tokens
+- **File Uploads**: Multer integration for trade screenshots
+- **Validation**: express-validator for input sanitization
+- **Security**: Helmet, CORS, rate limiting, and session management
+- **Error Handling**: Comprehensive error handling and logging
+
+### Database Schema
+- **users**: Discord user profiles and authentication data
+- **accounts**: Trading accounts (Demo, Live, Challenge accounts)
+- **trades**: Individual trade records with full details
+- **trade_tags**: Tag system for trade categorization
+- **user_settings**: User preferences and default values
+- **sessions**: Session storage for authentication
+
 ## 🚀 Getting Started
 
 ### Prerequisites
 - Node.js 18+ 
+- MySQL 8.0+
 - pnpm (preferred) or npm
 
 ### Installation
@@ -190,25 +274,63 @@ git clone <repository-url>
 cd trade-journal
 
 # Install dependencies
-pnpm install
+npm install --legacy-peer-deps
 
-# Run development server
-pnpm dev
+# Copy environment template
+cp env.example .env
+# Edit .env with your database and Discord OAuth credentials
+```
+
+### Database Setup
+```bash
+# Run database migrations
+npm run db:migrate
+
+# Seed with sample data (optional)
+npm run db:seed
 ```
 
 ### Development
 ```bash
-# Start development server
-pnpm dev
+# Start both frontend and backend
+npm run dev
+
+# Or start individually:
+npm run dev:frontend    # Next.js on port 3000
+npm run dev:backend     # Express on port 3001
 
 # Build for production
-pnpm build
+npm run build
 
 # Start production server
-pnpm start
+npm run start
 
 # Run linting
-pnpm lint
+npm run lint
+```
+
+### Environment Configuration
+Create a `.env` file with the following variables:
+```env
+# Database
+DB_HOST=localhost
+DB_PORT=3306
+DB_USER=your_db_user
+DB_PASSWORD=your_db_password
+DB_NAME=tradeprop_journal
+
+# Authentication
+JWT_SECRET=your_jwt_secret
+SESSION_SECRET=your_session_secret
+
+# Discord OAuth (get from Discord Developer Portal)
+DISCORD_CLIENT_ID=your_discord_client_id
+DISCORD_CLIENT_SECRET=your_discord_client_secret
+DISCORD_CALLBACK_URL=http://localhost:3000/api/auth/discord/callback
+
+# Server
+PORT=3001
+FRONTEND_URL=http://localhost:3000
 ```
 
 ## 📋 Next Steps for Development
