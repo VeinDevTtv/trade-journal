@@ -5,6 +5,34 @@ import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { LineChart, Calendar, BookText, LayoutDashboard, Upload, Download, Settings, Calculator } from "lucide-react"
 import { NewTradeButton } from "@/components/new-trade-button"
+import { useAccount } from "@/contexts/account-context"
+
+function AccountSideNav() {
+  const { accounts, selectedAccount, setSelectedAccount } = useAccount()
+
+  return (
+    <>
+      {accounts.map((account) => (
+        <button
+          key={account.id}
+          onClick={() => setSelectedAccount(account)}
+          className={cn(
+            "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-left w-full",
+            selectedAccount?.id === account.id
+              ? "bg-accent text-accent-foreground"
+              : "hover:bg-accent hover:text-accent-foreground"
+          )}
+        >
+          <div 
+            className="h-2 w-2 rounded-full" 
+            style={{ backgroundColor: account.color || '#22c55e' }}
+          />
+          <span className="truncate">{account.name}</span>
+        </button>
+      ))}
+    </>
+  )
+}
 
 export function SideNav() {
   const pathname = usePathname()
@@ -105,21 +133,7 @@ export function SideNav() {
         <div className="py-2">
           <h3 className="px-3 text-xs font-medium text-muted-foreground">Accounts</h3>
           <nav className="grid gap-2 pt-2">
-            <Link
-              href="#"
-              className="flex items-center gap-3 rounded-md bg-green-100 px-3 py-2 text-sm font-medium dark:bg-green-900/20"
-            >
-              <div className="h-2 w-2 rounded-full bg-green-500" />
-              FTMO Challenge
-            </Link>
-            <Link href="#" className="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium">
-              <div className="h-2 w-2 rounded-full bg-blue-500" />
-              MyForexFunds
-            </Link>
-            <Link href="#" className="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium">
-              <div className="h-2 w-2 rounded-full bg-orange-500" />
-              Demo Account
-            </Link>
+            <AccountSideNav />
           </nav>
         </div>
       </div>

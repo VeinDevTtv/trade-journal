@@ -17,20 +17,84 @@ export interface CurrencyPairInfo {
 
 // Map of currency pairs with their properties
 export const currencyPairsInfo: Record<string, CurrencyPairInfo> = {
+  // Major Currency Pairs
   EURUSD: { symbol: "EURUSD", pipDecimalPlace: 4, usdIsQuote: true, usdIsBase: false },
   GBPUSD: { symbol: "GBPUSD", pipDecimalPlace: 4, usdIsQuote: true, usdIsBase: false },
   AUDUSD: { symbol: "AUDUSD", pipDecimalPlace: 4, usdIsQuote: true, usdIsBase: false },
   NZDUSD: { symbol: "NZDUSD", pipDecimalPlace: 4, usdIsQuote: true, usdIsBase: false },
-
   USDJPY: { symbol: "USDJPY", pipDecimalPlace: 2, usdIsQuote: false, usdIsBase: true },
   USDCAD: { symbol: "USDCAD", pipDecimalPlace: 4, usdIsQuote: false, usdIsBase: true },
   USDCHF: { symbol: "USDCHF", pipDecimalPlace: 4, usdIsQuote: false, usdIsBase: true },
 
+  // Minor Currency Pairs (Cross Pairs)
   EURJPY: { symbol: "EURJPY", pipDecimalPlace: 2, usdIsQuote: false, usdIsBase: false },
   GBPJPY: { symbol: "GBPJPY", pipDecimalPlace: 2, usdIsQuote: false, usdIsBase: false },
   EURGBP: { symbol: "EURGBP", pipDecimalPlace: 4, usdIsQuote: false, usdIsBase: false },
   AUDCAD: { symbol: "AUDCAD", pipDecimalPlace: 4, usdIsQuote: false, usdIsBase: false },
   AUDNZD: { symbol: "AUDNZD", pipDecimalPlace: 4, usdIsQuote: false, usdIsBase: false },
+  EURAUD: { symbol: "EURAUD", pipDecimalPlace: 4, usdIsQuote: false, usdIsBase: false },
+  EURNZD: { symbol: "EURNZD", pipDecimalPlace: 4, usdIsQuote: false, usdIsBase: false },
+  EURCAD: { symbol: "EURCAD", pipDecimalPlace: 4, usdIsQuote: false, usdIsBase: false },
+  EURCHF: { symbol: "EURCHF", pipDecimalPlace: 4, usdIsQuote: false, usdIsBase: false },
+  GBPAUD: { symbol: "GBPAUD", pipDecimalPlace: 4, usdIsQuote: false, usdIsBase: false },
+  GBPNZD: { symbol: "GBPNZD", pipDecimalPlace: 4, usdIsQuote: false, usdIsBase: false },
+  GBPCAD: { symbol: "GBPCAD", pipDecimalPlace: 4, usdIsQuote: false, usdIsBase: false },
+  GBPCHF: { symbol: "GBPCHF", pipDecimalPlace: 4, usdIsQuote: false, usdIsBase: false },
+  AUDCHF: { symbol: "AUDCHF", pipDecimalPlace: 4, usdIsQuote: false, usdIsBase: false },
+  AUDJPY: { symbol: "AUDJPY", pipDecimalPlace: 2, usdIsQuote: false, usdIsBase: false },
+  NZDJPY: { symbol: "NZDJPY", pipDecimalPlace: 2, usdIsQuote: false, usdIsBase: false },
+  NZDCAD: { symbol: "NZDCAD", pipDecimalPlace: 4, usdIsQuote: false, usdIsBase: false },
+  NZDCHF: { symbol: "NZDCHF", pipDecimalPlace: 4, usdIsQuote: false, usdIsBase: false },
+  CADJPY: { symbol: "CADJPY", pipDecimalPlace: 2, usdIsQuote: false, usdIsBase: false },
+  CADCHF: { symbol: "CADCHF", pipDecimalPlace: 4, usdIsQuote: false, usdIsBase: false },
+  CHFJPY: { symbol: "CHFJPY", pipDecimalPlace: 2, usdIsQuote: false, usdIsBase: false },
+
+  // Exotic Currency Pairs
+  USDSEK: { symbol: "USDSEK", pipDecimalPlace: 4, usdIsQuote: false, usdIsBase: true },
+  USDNOK: { symbol: "USDNOK", pipDecimalPlace: 4, usdIsQuote: false, usdIsBase: true },
+  USDDKK: { symbol: "USDDKK", pipDecimalPlace: 4, usdIsQuote: false, usdIsBase: true },
+  USDPLN: { symbol: "USDPLN", pipDecimalPlace: 4, usdIsQuote: false, usdIsBase: true },
+  USDHUF: { symbol: "USDHUF", pipDecimalPlace: 2, usdIsQuote: false, usdIsBase: true },
+  USDCZK: { symbol: "USDCZK", pipDecimalPlace: 4, usdIsQuote: false, usdIsBase: true },
+  USDTRY: { symbol: "USDTRY", pipDecimalPlace: 4, usdIsQuote: false, usdIsBase: true },
+  USDZAR: { symbol: "USDZAR", pipDecimalPlace: 4, usdIsQuote: false, usdIsBase: true },
+  USDMXN: { symbol: "USDMXN", pipDecimalPlace: 4, usdIsQuote: false, usdIsBase: true },
+  USDSGD: { symbol: "USDSGD", pipDecimalPlace: 4, usdIsQuote: false, usdIsBase: true },
+  USDHKD: { symbol: "USDHKD", pipDecimalPlace: 4, usdIsQuote: false, usdIsBase: true },
+
+  // Stock Indices (CFDs)
+  US30: { symbol: "US30", pipDecimalPlace: 0, usdIsQuote: true, usdIsBase: false }, // Dow Jones
+  SPX500: { symbol: "SPX500", pipDecimalPlace: 1, usdIsQuote: true, usdIsBase: false }, // S&P 500
+  NAS100: { symbol: "NAS100", pipDecimalPlace: 1, usdIsQuote: true, usdIsBase: false }, // NASDAQ 100
+  UK100: { symbol: "UK100", pipDecimalPlace: 0, usdIsQuote: false, usdIsBase: false }, // FTSE 100
+  GER40: { symbol: "GER40", pipDecimalPlace: 0, usdIsQuote: false, usdIsBase: false }, // DAX 40
+  FRA40: { symbol: "FRA40", pipDecimalPlace: 0, usdIsQuote: false, usdIsBase: false }, // CAC 40
+  ESP35: { symbol: "ESP35", pipDecimalPlace: 0, usdIsQuote: false, usdIsBase: false }, // IBEX 35
+  ITA40: { symbol: "ITA40", pipDecimalPlace: 0, usdIsQuote: false, usdIsBase: false }, // FTSE MIB
+  AUS200: { symbol: "AUS200", pipDecimalPlace: 0, usdIsQuote: false, usdIsBase: false }, // ASX 200
+  JPN225: { symbol: "JPN225", pipDecimalPlace: 0, usdIsQuote: false, usdIsBase: false }, // Nikkei 225
+  HK50: { symbol: "HK50", pipDecimalPlace: 0, usdIsQuote: false, usdIsBase: false }, // Hang Seng
+  CHINA50: { symbol: "CHINA50", pipDecimalPlace: 0, usdIsQuote: false, usdIsBase: false }, // China A50
+  EUSTX50: { symbol: "EUSTX50", pipDecimalPlace: 0, usdIsQuote: false, usdIsBase: false }, // Euro Stoxx 50
+  
+  // Commodities
+  XAUUSD: { symbol: "XAUUSD", pipDecimalPlace: 2, usdIsQuote: true, usdIsBase: false }, // Gold
+  XAGUSD: { symbol: "XAGUSD", pipDecimalPlace: 3, usdIsQuote: true, usdIsBase: false }, // Silver
+  XPTUSD: { symbol: "XPTUSD", pipDecimalPlace: 2, usdIsQuote: true, usdIsBase: false }, // Platinum
+  XPDUSD: { symbol: "XPDUSD", pipDecimalPlace: 2, usdIsQuote: true, usdIsBase: false }, // Palladium
+  USOIL: { symbol: "USOIL", pipDecimalPlace: 2, usdIsQuote: true, usdIsBase: false }, // WTI Crude Oil
+  UKOIL: { symbol: "UKOIL", pipDecimalPlace: 2, usdIsQuote: true, usdIsBase: false }, // Brent Crude Oil
+  NATGAS: { symbol: "NATGAS", pipDecimalPlace: 3, usdIsQuote: true, usdIsBase: false }, // Natural Gas
+
+  // Cryptocurrencies (Major)
+  BTCUSD: { symbol: "BTCUSD", pipDecimalPlace: 2, usdIsQuote: true, usdIsBase: false }, // Bitcoin
+  ETHUSD: { symbol: "ETHUSD", pipDecimalPlace: 2, usdIsQuote: true, usdIsBase: false }, // Ethereum
+  LTCUSD: { symbol: "LTCUSD", pipDecimalPlace: 2, usdIsQuote: true, usdIsBase: false }, // Litecoin
+  XRPUSD: { symbol: "XRPUSD", pipDecimalPlace: 4, usdIsQuote: true, usdIsBase: false }, // Ripple
+  ADAUSD: { symbol: "ADAUSD", pipDecimalPlace: 4, usdIsQuote: true, usdIsBase: false }, // Cardano
+  DOTUSD: { symbol: "DOTUSD", pipDecimalPlace: 3, usdIsQuote: true, usdIsBase: false }, // Polkadot
+  LINKUSD: { symbol: "LINKUSD", pipDecimalPlace: 3, usdIsQuote: true, usdIsBase: false }, // Chainlink
+  SOLUSD: { symbol: "SOLUSD", pipDecimalPlace: 2, usdIsQuote: true, usdIsBase: false }, // Solana
 }
 
 // Get pip value for a currency pair
