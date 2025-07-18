@@ -5,6 +5,7 @@ import { UserNav } from "@/components/user-nav"
 import { ModeToggle } from "@/components/mode-toggle"
 import { AccountSelector } from "@/components/account-selector"
 import { AccountProvider } from "@/contexts/account-context"
+import { ProtectedRoute } from "@/components/auth/protected-route"
 
 export default function DashboardLayout({
   children,
@@ -12,21 +13,23 @@ export default function DashboardLayout({
   children: React.ReactNode
 }) {
   return (
-    <AccountProvider>
-      <div className="flex min-h-screen flex-col">
-        <header className="sticky top-0 z-50 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6">
-          <MainNav />
-          <div className="ml-auto flex items-center gap-4">
-            <AccountSelector className="hidden md:block" />
-            <ModeToggle />
-            <UserNav />
+    <ProtectedRoute>
+      <AccountProvider>
+        <div className="flex min-h-screen flex-col">
+          <header className="sticky top-0 z-50 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6">
+            <MainNav />
+            <div className="ml-auto flex items-center gap-4">
+              <AccountSelector className="hidden md:block" />
+              <ModeToggle />
+              <UserNav />
+            </div>
+          </header>
+          <div className="flex flex-1">
+            <SideNav />
+            <main className="flex-1 overflow-auto p-4 md:p-6">{children}</main>
           </div>
-        </header>
-        <div className="flex flex-1">
-          <SideNav />
-          <main className="flex-1 overflow-auto p-4 md:p-6">{children}</main>
         </div>
-      </div>
-    </AccountProvider>
+      </AccountProvider>
+    </ProtectedRoute>
   )
 }
