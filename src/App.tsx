@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Toaster } from 'react-hot-toast'
 import { useTradeStore } from './store/tradeStore'
@@ -12,12 +12,8 @@ import {
   Calendar, 
   Moon, 
   Sun, 
-  TrendingUp, 
-  Activity,
   ChevronLeft,
   ChevronRight,
-  DollarSign,
-  Target,
   PieChart
 } from 'lucide-react'
 

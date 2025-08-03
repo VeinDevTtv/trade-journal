@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { toast } from 'react-hot-toast'
 import { useTradeStore } from '../store/tradeStore'
@@ -9,12 +9,10 @@ import {
   Calendar as CalendarIcon, 
   TrendingUp, 
   TrendingDown,
-  Target,
   Award,
   Activity,
   Plus,
   Eye,
-  Clock,
   DollarSign
 } from 'lucide-react'
 

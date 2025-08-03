@@ -1,24 +1,18 @@
-import React, { useMemo } from 'react'
+import { useMemo } from 'react'
 import { motion } from 'framer-motion'
 import { useTradeStore } from '../store/tradeStore'
 import { formatCurrency } from '../lib/utils'
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card'
 import { 
   TrendingUp, 
-  TrendingDown, 
   DollarSign, 
   Target, 
   Activity,
-  Calendar,
   Award,
   BarChart3,
-  PieChart,
-  Users,
-  Clock
+  PieChart
 } from 'lucide-react'
 import {
-  LineChart,
-  Line,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -27,6 +21,7 @@ import {
   BarChart,
   Bar,
   PieChart as RechartsPieChart,
+  Pie,
   Cell,
   AreaChart,
   Area
@@ -192,8 +187,6 @@ export function DashboardView() {
       color: analytics.profitFactor > 1 ? "text-green-600" : "text-orange-600"
     }
   ]
-
-  const COLORS = ['#3b82f6', '#ef4444', '#f59e0b', '#10b981', '#8b5cf6']
 
   const pieData = [
     { name: 'Wins', value: analytics.wins, color: '#10b981' },
@@ -415,7 +408,7 @@ export function DashboardView() {
                       />
                       <Bar 
                         dataKey="pnl" 
-                        fill={(data: any) => data.pnl >= 0 ? '#10b981' : '#ef4444'}
+                        fill="#3b82f6"
                         radius={[4, 4, 0, 0]}
                       />
                     </BarChart>
@@ -445,7 +438,7 @@ export function DashboardView() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {analytics.pairPerformance.slice(0, 5).map((pair, index) => (
+                {analytics.pairPerformance.slice(0, 5).map((pair) => (
                   <div key={pair.pair} className="flex items-center justify-between">
                     <div>
                       <p className="font-medium">{pair.pair || 'Unknown'}</p>

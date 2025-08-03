@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { persist, PersistOptions } from 'zustand/middleware'
+import { persist } from 'zustand/middleware'
 import { Trade, TradeSummary } from '../types/trade'
 
 interface TradeStore {

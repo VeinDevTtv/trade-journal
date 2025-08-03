@@ -1,4 +1,4 @@
-import React from 'react'
+// React import removed - not needed with modern JSX transform
 import { motion } from 'framer-motion'
 import { useTradeStore } from '../store/tradeStore'
 import { formatCurrency } from '../lib/utils'
@@ -10,10 +10,7 @@ import {
   Activity, 
   Award,
   BarChart3,
-  Calendar,
-  Clock,
   DollarSign,
-  Percent,
   Zap,
   Trophy
 } from 'lucide-react'
@@ -54,7 +51,6 @@ export function TradingInsights() {
 
   const wins = trades.filter(t => t.result === 'Win')
   const losses = trades.filter(t => t.result === 'Loss')
-  const breakevens = trades.filter(t => t.result === 'Breakeven')
   
   const avgWin = wins.length > 0 ? wins.reduce((sum, t) => sum + t.profitLoss, 0) / wins.length : 0
   const avgLoss = losses.length > 0 ? losses.reduce((sum, t) => sum + t.profitLoss, 0) / losses.length : 0
