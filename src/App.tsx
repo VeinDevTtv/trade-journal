@@ -5,6 +5,7 @@ import { useTradeStore } from './store/tradeStore'
 import { TableView } from './components/TableView'
 import { CalendarView } from './components/CalendarView'
 import { DashboardView } from './components/DashboardView'
+import { DebugTradeTest } from './components/DebugTradeTest'
 import { Button } from './components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from './components/ui/card'
 import { 
@@ -270,6 +271,9 @@ function App() {
           </Card>
         </motion.div>
 
+        {/* Debug Component - Remove this after testing */}
+        <DebugTradeTest />
+        
         {/* Main Content with smooth transitions */}
         <AnimatePresence mode="wait">
           <motion.div

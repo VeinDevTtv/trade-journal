@@ -74,6 +74,7 @@ export function CalendarView() {
     addTrade({
       pair: '',
       date,
+      time: '',
       direction: '-',
       profitLoss: 0,
       result: 'Breakeven',
@@ -213,7 +214,13 @@ export function CalendarView() {
                             </div>
                           </div>
                         ) : (
-                          <div className="text-xs p-2 bg-muted/20 rounded-md border-2 border-dashed border-muted h-full flex flex-col justify-center items-center group hover:bg-muted/40 transition-colors">
+                          <div 
+                            className="text-xs p-2 bg-muted/20 rounded-md border-2 border-dashed border-muted h-full flex flex-col justify-center items-center group hover:bg-muted/40 transition-colors cursor-pointer"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              addTradeForDate(dateString)
+                            }}
+                          >
                             <div className="opacity-50 group-hover:opacity-75 transition-opacity">
                               <Plus className="h-4 w-4 mb-1" />
                               <div>Add Trade</div>
