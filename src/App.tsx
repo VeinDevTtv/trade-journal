@@ -16,6 +16,7 @@ import {
   ChevronRight,
   PieChart
 } from 'lucide-react'
+import logoImage from './logodudde.png'
 
 function App() {
   const [activeTab, setActiveTab] = useState<'dashboard' | 'table' | 'calendar'>('dashboard')
@@ -125,7 +126,7 @@ function App() {
                 <div className="space-y-2">
                   <div className="flex items-center gap-4">
                     <img 
-                      src="/logodudde.png" 
+                      src={logoImage} 
                       alt="Trading Journal Pro Logo" 
                       className="h-12 w-auto object-contain"
                     />
