@@ -123,9 +123,18 @@ function App() {
             <CardHeader className="pb-4">
               <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                 <div className="space-y-2">
-                  <CardTitle className="text-4xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
-                    Trading Journal Pro
-                  </CardTitle>
+                  <div className="flex items-center gap-4">
+                    <img 
+                      src="/logodudde.png" 
+                      alt="Trading Journal Pro Logo" 
+                      className="h-12 w-auto object-contain"
+                    />
+                    <div>
+                      <CardTitle className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+                        Trading Journal Pro
+                      </CardTitle>
+                    </div>
+                  </div>
                   <p className="text-muted-foreground text-lg">
                     Professional trading performance analytics
                   </p>
