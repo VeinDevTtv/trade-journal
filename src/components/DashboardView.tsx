@@ -173,14 +173,14 @@ export function DashboardView() {
     {
       title: "Total P&L",
       value: formatCurrency(summary.totalProfitLoss),
-      change: summary.totalProfitLoss >= 0 ? "+5.2%" : "-2.1%",
+      change: trades.length > 0 ? (summary.totalProfitLoss >= 0 ? "Profit" : "Loss") : "No trades yet",
       icon: DollarSign,
       color: summary.totalProfitLoss >= 0 ? "text-green-600" : "text-red-600"
     },
     {
       title: "Win Rate",
       value: `${summary.winRate.toFixed(1)}%`,
-      change: "+2.3%",
+      change: trades.length > 0 ? `${trades.length} trades` : "No data",
       icon: Target,
       color: "text-blue-600"
     },

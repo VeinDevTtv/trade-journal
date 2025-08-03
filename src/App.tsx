@@ -127,12 +127,12 @@ function App() {
                   <div className="flex items-center gap-4">
                     <img 
                       src={logoImage} 
-                      alt="Trading Journal Pro Logo" 
+                      // alt="Trading Journal Pro Logo" 
                       className="h-12 w-auto object-contain"
                     />
                     <div>
                       <CardTitle className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
-                        Trading Journal Pro
+                        {/* Trading Journal Pro */}
                       </CardTitle>
                     </div>
                   </div>
