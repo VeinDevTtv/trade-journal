@@ -131,12 +131,24 @@ export function DashboardView() {
       winRate: data.trades > 0 ? (data.wins / data.trades) * 100 : 0
     })).sort((a, b) => b.totalPnL - a.totalPnL)
 
-    // Time distribution (mock data based on accounts for now)
+    // Time distribution based on actual trade times
+    const getSessionFromTime = (timeStr?: string) => {
+      if (!timeStr) return 'Unknown'
+      const [hours] = timeStr.split(':').map(Number)
+      
+      // Trading sessions based on UTC hours
+      if (hours >= 0 && hours < 8) return 'Asia'
+      if (hours >= 8 && hours < 16) return 'London' 
+      if (hours >= 16 && hours < 24) return 'New York'
+      return 'Unknown'
+    }
+    
     const timeDistribution = [
-      { time: 'Asia', trades: trades.filter(t => t.account === 'Demo').length },
-      { time: 'London', trades: trades.filter(t => t.account === 'Personal').length },
-      { time: 'New York', trades: trades.filter(t => t.account === 'Funded').length }
-    ]
+      { time: 'Asia', trades: trades.filter(t => getSessionFromTime(t.time) === 'Asia').length },
+      { time: 'London', trades: trades.filter(t => getSessionFromTime(t.time) === 'London').length },
+      { time: 'New York', trades: trades.filter(t => getSessionFromTime(t.time) === 'New York').length },
+      { time: 'Unknown', trades: trades.filter(t => getSessionFromTime(t.time) === 'Unknown').length }
+    ].filter(item => item.trades > 0) // Only show sessions with trades
 
     return {
       wins: wins.length,

@@ -129,6 +129,16 @@ function App() {
                   <p className="text-muted-foreground text-lg">
                     Professional trading performance analytics
                   </p>
+                  <p className="text-muted-foreground text-sm">
+                    Made with ❤️ by <a 
+                      href="https://instagram.com/notabdelkarim" 
+                      target="_blank" 
+                      rel="noopener noreferrer" 
+                      className="text-primary hover:text-primary/80 underline transition-colors"
+                    >
+                      Abdelkarim
+                    </a>
+                  </p>
                 </div>
                 
                 <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
@@ -264,6 +274,25 @@ function App() {
             {activeTab === 'calendar' && <CalendarView />}
           </motion.div>
         </AnimatePresence>
+        
+        {/* Footer */}
+        <motion.footer
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.5, delay: 0.3 }}
+          className="mt-12 text-center border-t border-border/50 pt-6"
+        >
+          <p className="text-muted-foreground text-sm">
+            Made with ❤️ by <a 
+              href="https://instagram.com/notabdelkarim" 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="text-primary hover:text-primary/80 underline transition-colors"
+            >
+              Abdelkarim
+            </a> • Trading Journal Pro © {new Date().getFullYear()}
+          </p>
+        </motion.footer>
       </div>
     </div>
   )

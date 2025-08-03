@@ -111,6 +111,7 @@ export function TableView() {
     const newTrade = {
       pair: '',
       date: today,
+      time: '',
       direction: '-' as const,
       profitLoss: 0,
       result: 'Breakeven' as const,
@@ -162,12 +163,14 @@ export function TableView() {
     trade, 
     field, 
     type = 'text',
-    options 
+    options,
+    placeholder
   }: { 
     trade: Trade
     field: keyof Trade
-    type?: 'text' | 'number' | 'date' | 'select'
+    type?: 'text' | 'number' | 'date' | 'select' | 'time'
     options?: string[]
+    placeholder?: string
   }) => {
     const isEditing = editingCell?.tradeId === trade.id && editingCell?.field === field
     const value = trade[field]
@@ -197,6 +200,7 @@ export function TableView() {
         <Input
           type={type}
           value={value as string | number}
+          placeholder={placeholder}
           onChange={(e) => {
             const newValue = type === 'number' ? parseFloat(e.target.value) || 0 : e.target.value
             handleCellEdit(trade.id, field, newValue)
@@ -426,6 +430,7 @@ export function TableView() {
                     </TableHead>
                     <SortableHeader field="pair">Pair</SortableHeader>
                     <SortableHeader field="date">Date</SortableHeader>
+                    <TableHead>Time</TableHead>
                     <TableHead>Direction</TableHead>
                     <SortableHeader field="profitLoss">P&L</SortableHeader>
                     <TableHead>Result</TableHead>
@@ -465,6 +470,9 @@ export function TableView() {
                         </TableCell>
                         <TableCell>
                           <EditableCell trade={trade} field="date" type="date" />
+                        </TableCell>
+                        <TableCell>
+                          <EditableCell trade={trade} field="time" type="time" placeholder="HH:mm" />
                         </TableCell>
                         <TableCell>
                           <div className="flex items-center gap-2">
@@ -536,7 +544,7 @@ export function TableView() {
                   
                   {filteredTrades.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={10} className="text-center text-muted-foreground py-12">
+                      <TableCell colSpan={11} className="text-center text-muted-foreground py-12">
                         <div className="space-y-2">
                           <p className="text-lg">No trades found</p>
                           <p className="text-sm">

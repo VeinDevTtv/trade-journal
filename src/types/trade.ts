@@ -2,6 +2,7 @@ export interface Trade {
   id: string
   pair: string
   date: string
+  time?: string // Format: HH:mm (24-hour format)
   direction: 'Long' | 'Short' | '-'
   profitLoss: number
   result: 'Win' | 'Loss' | 'Breakeven'

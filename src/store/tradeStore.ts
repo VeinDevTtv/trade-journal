@@ -16,47 +16,13 @@ interface TradeStore {
 
 const generateId = () => Math.random().toString(36).substring(2, 15)
 
-// Mock data for initial setup
-const mockTrades: Trade[] = [
-  {
-    id: '1',
-    pair: 'XAUUSD',
-    date: '2024-01-15',
-    direction: 'Long',
-    profitLoss: 250.50,
-    result: 'Win',
-    riskReward: 2.5,
-    account: 'Funded',
-    emotions: 'Confident, followed the plan'
-  },
-  {
-    id: '2',
-    pair: 'US100',
-    date: '2024-01-16',
-    direction: 'Short',
-    profitLoss: -100.00,
-    result: 'Loss',
-    riskReward: 1.8,
-    account: 'Demo',
-    emotions: 'FOMO entry, lesson learned'
-  },
-  {
-    id: '3',
-    pair: 'EURUSD',
-    date: '2024-01-17',
-    direction: 'Long',
-    profitLoss: 0,
-    result: 'Breakeven',
-    riskReward: 0,
-    account: 'Personal',
-    emotions: 'Neutral, market was choppy'
-  }
-]
+// Initial empty state - users will add their own real trades
+const initialTrades: Trade[] = []
 
 export const useTradeStore = create<TradeStore>()(
   persist(
     (set, get) => ({
-      trades: mockTrades,
+      trades: initialTrades,
       currentMonth: { 
         year: new Date().getFullYear(), 
         month: new Date().getMonth() + 1 
