@@ -44,17 +44,31 @@ type SortField = 'date' | 'profitLoss' | 'riskReward' | 'pair'
 type SortDirection = 'asc' | 'desc'
 
 export function TableView() {
-  const store = useTradeStore()
-  const { 
-    getCurrentMonthTrades, 
-    getTradeSummary, 
-    addTrade, 
-    updateTrade, 
-    deleteTrade 
-  } = store
+  const { trades, currentMonth, addTrade, updateTrade, deleteTrade } = useTradeStore()
   
-  const allTrades = getCurrentMonthTrades()
-  const summary = getTradeSummary()
+  // Calculate current month trades reactively
+  const allTrades = useMemo(() => {
+    return trades.filter(trade => {
+      const tradeDate = new Date(trade.date)
+      return tradeDate.getFullYear() === currentMonth.year &&
+             tradeDate.getMonth() + 1 === currentMonth.month
+    })
+  }, [trades, currentMonth])
+  
+  // Calculate summary reactively
+  const summary = useMemo(() => {
+    const totalProfitLoss = allTrades.reduce((sum, trade) => sum + trade.profitLoss, 0)
+    const totalRiskReward = allTrades.reduce((sum, trade) => sum + trade.riskReward, 0)
+    const winningTrades = allTrades.filter(trade => trade.result === 'Win').length
+    const winRate = allTrades.length > 0 ? (winningTrades / allTrades.length) * 100 : 0
+    
+    return {
+      totalProfitLoss,
+      totalRiskReward,
+      winRate,
+      totalTrades: allTrades.length
+    }
+  }, [allTrades])
   
   const [editingCell, setEditingCell] = useState<{tradeId: string, field: string} | null>(null)
   const [showExportModal, setShowExportModal] = useState(false)

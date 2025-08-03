@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { toast } from 'react-hot-toast'
 import { useTradeStore } from '../store/tradeStore'
@@ -17,9 +17,21 @@ import {
 } from 'lucide-react'
 
 export function CalendarView() {
-  const store = useTradeStore()
-  const { getCurrentMonthTrades, getTradeByDate, currentMonth, addTrade } = store
-  const trades = getCurrentMonthTrades()
+  const { trades, currentMonth, addTrade } = useTradeStore()
+  
+  // Calculate current month trades reactively
+  const currentMonthTrades = useMemo(() => {
+    return trades.filter(trade => {
+      const tradeDate = new Date(trade.date)
+      return tradeDate.getFullYear() === currentMonth.year &&
+             tradeDate.getMonth() + 1 === currentMonth.month
+    })
+  }, [trades, currentMonth])
+  
+  // Get trade by date reactively
+  const getTradeByDate = (date: string) => {
+    return currentMonthTrades.find(trade => trade.date === date)
+  }
   const [selectedDate, setSelectedDate] = useState<string | null>(null)
   const [hoveredDate, setHoveredDate] = useState<string | null>(null)
 
@@ -93,14 +105,14 @@ export function CalendarView() {
   const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 
   // Calculate additional metrics
-  const totalPnL = trades.reduce((sum, trade) => sum + trade.profitLoss, 0)
-  const bestDay = trades.length > 0 ? Math.max(...trades.map(t => t.profitLoss)) : 0
-  const worstDay = trades.length > 0 ? Math.min(...trades.map(t => t.profitLoss)) : 0
-  const avgDailyPnL = trades.length > 0 ? totalPnL / new Set(trades.map(t => t.date)).size : 0
+  const totalPnL = currentMonthTrades.reduce((sum, trade) => sum + trade.profitLoss, 0)
+  const bestDay = currentMonthTrades.length > 0 ? Math.max(...currentMonthTrades.map(t => t.profitLoss)) : 0
+  const worstDay = currentMonthTrades.length > 0 ? Math.min(...currentMonthTrades.map(t => t.profitLoss)) : 0
+  const avgDailyPnL = currentMonthTrades.length > 0 ? totalPnL / new Set(currentMonthTrades.map(t => t.date)).size : 0
   
-  const winningDays = new Set(trades.filter(t => t.result === 'Win').map(t => t.date)).size
-  const losingDays = new Set(trades.filter(t => t.result === 'Loss').map(t => t.date)).size
-  const tradingDays = new Set(trades.map(t => t.date)).size
+  const winningDays = new Set(currentMonthTrades.filter(t => t.result === 'Win').map(t => t.date)).size
+  const losingDays = new Set(currentMonthTrades.filter(t => t.result === 'Loss').map(t => t.date)).size
+  const tradingDays = new Set(currentMonthTrades.map(t => t.date)).size
 
   const selectedTrade = selectedDate ? getTradeByDate(selectedDate) : null
 

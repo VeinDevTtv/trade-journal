@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Toaster } from 'react-hot-toast'
 import { useTradeStore } from './store/tradeStore'
@@ -23,8 +23,31 @@ function App() {
   const [isDark, setIsDark] = useState(() => {
     return document.documentElement.classList.contains('dark')
   })
-  const store = useTradeStore()
-  const { currentMonth, setCurrentMonth, getTradeSummary, getCurrentMonthTrades } = store
+  const { trades, currentMonth, setCurrentMonth } = useTradeStore()
+  
+  // Calculate current month trades reactively
+  const currentMonthTrades = useMemo(() => {
+    return trades.filter(trade => {
+      const tradeDate = new Date(trade.date)
+      return tradeDate.getFullYear() === currentMonth.year &&
+             tradeDate.getMonth() + 1 === currentMonth.month
+    })
+  }, [trades, currentMonth])
+  
+  // Calculate summary reactively
+  const summary = useMemo(() => {
+    const totalProfitLoss = currentMonthTrades.reduce((sum, trade) => sum + trade.profitLoss, 0)
+    const totalRiskReward = currentMonthTrades.reduce((sum, trade) => sum + trade.riskReward, 0)
+    const winningTrades = currentMonthTrades.filter(trade => trade.result === 'Win').length
+    const winRate = currentMonthTrades.length > 0 ? (winningTrades / currentMonthTrades.length) * 100 : 0
+    
+    return {
+      totalProfitLoss,
+      totalRiskReward,
+      winRate,
+      totalTrades: currentMonthTrades.length
+    }
+  }, [currentMonthTrades])
 
   useEffect(() => {
     // Initialize theme from localStorage or system preference
@@ -76,8 +99,7 @@ function App() {
     setCurrentMonth(newYear, newMonth)
   }
 
-  const summary = getTradeSummary()
-  const trades = getCurrentMonthTrades()
+  // Use the reactive data calculated above
 
   const tabs = [
     { 
@@ -169,7 +191,7 @@ function App() {
                     </div>
                     <div className="text-center">
                       <div className="text-xl font-bold">
-                        {trades.length}
+                        {currentMonthTrades.length}
                       </div>
                       <div className="text-muted-foreground">Trades</div>
                     </div>

@@ -28,10 +28,31 @@ import {
 } from 'recharts'
 
 export function DashboardView() {
-  const store = useTradeStore()
-  const { getCurrentMonthTrades, getTradeSummary } = store
-  const trades = getCurrentMonthTrades()
-  const summary = getTradeSummary()
+  const { trades: allTrades, currentMonth } = useTradeStore()
+  
+  // Calculate current month trades reactively
+  const trades = useMemo(() => {
+    return allTrades.filter(trade => {
+      const tradeDate = new Date(trade.date)
+      return tradeDate.getFullYear() === currentMonth.year &&
+             tradeDate.getMonth() + 1 === currentMonth.month
+    })
+  }, [allTrades, currentMonth])
+  
+  // Calculate summary reactively
+  const summary = useMemo(() => {
+    const totalProfitLoss = trades.reduce((sum, trade) => sum + trade.profitLoss, 0)
+    const totalRiskReward = trades.reduce((sum, trade) => sum + trade.riskReward, 0)
+    const winningTrades = trades.filter(trade => trade.result === 'Win').length
+    const winRate = trades.length > 0 ? (winningTrades / trades.length) * 100 : 0
+    
+    return {
+      totalProfitLoss,
+      totalRiskReward,
+      winRate,
+      totalTrades: trades.length
+    }
+  }, [trades])
 
   // Calculate advanced metrics
   const analytics = useMemo(() => {
