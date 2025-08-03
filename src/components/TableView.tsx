@@ -44,13 +44,14 @@ type SortField = 'date' | 'profitLoss' | 'riskReward' | 'pair'
 type SortDirection = 'asc' | 'desc'
 
 export function TableView() {
+  const store = useTradeStore()
   const { 
     getCurrentMonthTrades, 
     getTradeSummary, 
     addTrade, 
     updateTrade, 
     deleteTrade 
-  } = useTradeStore()
+  } = store
   
   const allTrades = getCurrentMonthTrades()
   const summary = getTradeSummary()

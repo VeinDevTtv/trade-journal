@@ -17,7 +17,8 @@ import {
 } from 'lucide-react'
 
 export function CalendarView() {
-  const { getCurrentMonthTrades, getTradeByDate, currentMonth, addTrade } = useTradeStore()
+  const store = useTradeStore()
+  const { getCurrentMonthTrades, getTradeByDate, currentMonth, addTrade } = store
   const trades = getCurrentMonthTrades()
   const [selectedDate, setSelectedDate] = useState<string | null>(null)
   const [hoveredDate, setHoveredDate] = useState<string | null>(null)
@@ -71,18 +72,22 @@ export function CalendarView() {
   }
 
   const addTradeForDate = (date: string) => {
-    addTrade({
+    const newTrade = {
       pair: '',
       date,
       time: '',
-      direction: '-',
+      direction: '-' as const,
       profitLoss: 0,
-      result: 'Breakeven',
+      result: 'Breakeven' as const,
       riskReward: 0,
-      account: 'Demo',
+      account: 'Demo' as const,
       emotions: ''
-    })
+    }
+    addTrade(newTrade)
     toast.success(`New trade added for ${new Date(date).toLocaleDateString()}`)
+    
+    // Update the selected date to show the new trade immediately
+    setSelectedDate(date)
   }
 
   const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']

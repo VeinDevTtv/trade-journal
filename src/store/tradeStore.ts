@@ -28,9 +28,12 @@ export const useTradeStore = create<TradeStore>()(
         month: new Date().getMonth() + 1 
       },
       
-      addTrade: (trade: Omit<Trade, 'id'>) => set((state: TradeStore) => ({
-        trades: [...state.trades, { ...trade, id: generateId() }]
-      })),
+      addTrade: (trade: Omit<Trade, 'id'>) => {
+        const newTrade = { ...trade, id: generateId() }
+        set((state: TradeStore) => ({
+          trades: [...state.trades, newTrade]
+        }))
+      },
       
       updateTrade: (id: string, updatedFields: Partial<Trade>) => set((state: TradeStore) => ({
         trades: state.trades.map((trade: Trade) => 

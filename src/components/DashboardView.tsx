@@ -28,7 +28,8 @@ import {
 } from 'recharts'
 
 export function DashboardView() {
-  const { getCurrentMonthTrades, getTradeSummary } = useTradeStore()
+  const store = useTradeStore()
+  const { getCurrentMonthTrades, getTradeSummary } = store
   const trades = getCurrentMonthTrades()
   const summary = getTradeSummary()
 
