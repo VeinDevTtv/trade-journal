@@ -195,7 +195,11 @@ export function TableView() {
     }, [isEditing, trade[field]])
 
     const handleSave = () => {
-      const finalValue = type === 'number' ? (parseFloat(tempValue as string) || 0) : tempValue
+      let finalValue = tempValue
+      if (type === 'number') {
+        const parsed = parseFloat(tempValue as string)
+        finalValue = isNaN(parsed) ? 0 : parsed
+      }
       updateTrade(trade.id, { [field]: finalValue })
       setEditingCell(null)
       toast.success('Trade updated successfully!')
@@ -262,8 +266,8 @@ export function TableView() {
         className="cursor-pointer hover:bg-muted/50 rounded px-2 py-1 min-h-[32px] flex items-center group transition-colors"
         onClick={() => setEditingCell({ tradeId: trade.id, field })}
       >
-        <span className={!displayValue ? 'text-muted-foreground' : ''}>
-          {displayValue || 'Click to edit'}
+        <span className={displayValue === null || displayValue === undefined || displayValue === '' ? 'text-muted-foreground' : ''}>
+          {displayValue !== null && displayValue !== undefined && displayValue !== '' ? displayValue : 'Click to edit'}
         </span>
         <Edit3 className="h-3 w-3 ml-auto opacity-0 group-hover:opacity-50 transition-opacity" />
       </div>
