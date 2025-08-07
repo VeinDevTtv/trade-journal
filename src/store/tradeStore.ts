@@ -12,6 +12,8 @@ interface TradeStore {
   getCurrentMonthTrades: () => Trade[]
   getTradeSummary: () => TradeSummary
   getTradeByDate: (date: string) => Trade | undefined
+  getTradesByDate: (date: string) => Trade[]
+  getDailyTradeSummary: (date: string) => { totalPL: number; totalRR: number; pairs: string[]; tradeCount: number; result: 'Win' | 'Loss' | 'Breakeven' }
 }
 
 const generateId = () => Math.random().toString(36).substring(2, 15)
@@ -74,6 +76,36 @@ export const useTradeStore = create<TradeStore>()(
       getTradeByDate: (date: string) => {
         const trades = get().getCurrentMonthTrades()
         return trades.find(trade => trade.date === date)
+      },
+
+      getTradesByDate: (date: string) => {
+        const trades = get().getCurrentMonthTrades()
+        return trades.filter(trade => trade.date === date)
+      },
+
+      getDailyTradeSummary: (date: string) => {
+        const dailyTrades = get().getTradesByDate(date)
+        
+        if (dailyTrades.length === 0) {
+          return { totalPL: 0, totalRR: 0, pairs: [], tradeCount: 0, result: 'Breakeven' as const }
+        }
+
+        const totalPL = dailyTrades.reduce((sum, trade) => sum + trade.profitLoss, 0)
+        const totalRR = dailyTrades.reduce((sum, trade) => sum + trade.riskReward, 0)
+        const pairs = [...new Set(dailyTrades.map(trade => trade.pair).filter(pair => pair && pair.trim() !== ''))]
+        const tradeCount = dailyTrades.length
+
+        // Determine overall daily result based on total P/L
+        let result: 'Win' | 'Loss' | 'Breakeven'
+        if (totalPL > 0) {
+          result = 'Win'
+        } else if (totalPL < 0) {
+          result = 'Loss'
+        } else {
+          result = 'Breakeven'
+        }
+
+        return { totalPL, totalRR, pairs, tradeCount, result }
       }
     }),
     {

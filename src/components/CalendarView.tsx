@@ -17,7 +17,7 @@ import {
 } from 'lucide-react'
 
 export function CalendarView() {
-  const { trades, currentMonth, addTrade } = useTradeStore()
+  const { trades, currentMonth, addTrade, getTradesByDate, getDailyTradeSummary } = useTradeStore()
   
   // Calculate current month trades reactively
   const currentMonthTrades = useMemo(() => {
@@ -28,9 +28,9 @@ export function CalendarView() {
     })
   }, [trades, currentMonth])
   
-  // Get trade by date reactively
-  const getTradeByDate = (date: string) => {
-    return currentMonthTrades.find(trade => trade.date === date)
+  // Get daily trade summary reactively
+  const getDailySummary = (date: string) => {
+    return getDailyTradeSummary(date)
   }
   const [selectedDate, setSelectedDate] = useState<string | null>(null)
   const [hoveredDate, setHoveredDate] = useState<string | null>(null)
@@ -104,17 +104,21 @@ export function CalendarView() {
 
   const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 
-  // Calculate additional metrics
-  const totalPnL = currentMonthTrades.reduce((sum, trade) => sum + trade.profitLoss, 0)
-  const bestDay = currentMonthTrades.length > 0 ? Math.max(...currentMonthTrades.map(t => t.profitLoss)) : 0
-  const worstDay = currentMonthTrades.length > 0 ? Math.min(...currentMonthTrades.map(t => t.profitLoss)) : 0
-  const avgDailyPnL = currentMonthTrades.length > 0 ? totalPnL / new Set(currentMonthTrades.map(t => t.date)).size : 0
-  
-  const winningDays = new Set(currentMonthTrades.filter(t => t.result === 'Win').map(t => t.date)).size
-  const losingDays = new Set(currentMonthTrades.filter(t => t.result === 'Loss').map(t => t.date)).size
+  // Calculate additional metrics with proper daily aggregation
   const tradingDays = new Set(currentMonthTrades.map(t => t.date)).size
+  const uniqueDates = [...new Set(currentMonthTrades.map(t => t.date))]
+  
+  const dailyPnLs = uniqueDates.map(date => getDailyTradeSummary(date).totalPL)
+  const totalPnL = dailyPnLs.reduce((sum, dayPnL) => sum + dayPnL, 0)
+  const bestDay = dailyPnLs.length > 0 ? Math.max(...dailyPnLs) : 0
+  const worstDay = dailyPnLs.length > 0 ? Math.min(...dailyPnLs) : 0
+  const avgDailyPnL = dailyPnLs.length > 0 ? totalPnL / dailyPnLs.length : 0
+  
+  const winningDays = uniqueDates.filter(date => getDailyTradeSummary(date).result === 'Win').length
+  const losingDays = uniqueDates.filter(date => getDailyTradeSummary(date).result === 'Loss').length
 
-  const selectedTrade = selectedDate ? getTradeByDate(selectedDate) : null
+  const selectedDayTrades = selectedDate ? getTradesByDate(selectedDate) : []
+  const selectedDaySummary = selectedDate ? getDailySummary(selectedDate) : null
 
   return (
     <div className="space-y-6">
@@ -184,7 +188,8 @@ export function CalendarView() {
                   }
 
                   const dateString = formatDateString(day)
-                  const trade = getTradeByDate(dateString)
+                  const dailySummary = getDailySummary(dateString)
+                  const hasTrades = dailySummary.tradeCount > 0
                   const isToday = new Date().toDateString() === new Date(dateString).toDateString()
                   const isSelected = selectedDate === dateString
                   const isHovered = hoveredDate === dateString
@@ -197,7 +202,7 @@ export function CalendarView() {
                         ${isToday ? 'ring-2 ring-primary ring-offset-2' : ''}
                         ${isSelected ? 'scale-105 shadow-lg' : ''}
                         ${isHovered ? 'scale-102 shadow-md' : ''}
-                        ${trade ? getResultBorderColor(trade.result) : 'border-muted'}
+                        ${hasTrades ? getResultBorderColor(dailySummary.result) : 'border-muted'}
                       `}
                       onClick={() => setSelectedDate(dateString)}
                       onMouseEnter={() => setHoveredDate(dateString)}
@@ -214,20 +219,32 @@ export function CalendarView() {
                         </div>
                         
                         {/* Trade info */}
-                        {trade ? (
+                        {hasTrades ? (
                           <div className={`
                             text-xs p-2 rounded-md border-2 h-full flex flex-col justify-between
-                            bg-gradient-to-br ${getResultGradient(trade.result)}
-                            ${getResultBorderColor(trade.result)}
+                            bg-gradient-to-br ${getResultGradient(dailySummary.result)}
+                            ${getResultBorderColor(dailySummary.result)}
                           `}>
                             <div className="space-y-1">
-                              <div className="font-semibold truncate">{trade.pair || 'No Pair'}</div>
-                              <div className={`font-bold ${getResultColor(trade.result)}`}>
-                                {formatCurrency(trade.profitLoss)}
+                              <div className="font-semibold truncate">
+                                {dailySummary.pairs.length > 0 
+                                  ? dailySummary.pairs.length > 1 
+                                    ? `${dailySummary.pairs[0]} +${dailySummary.pairs.length - 1}`
+                                    : dailySummary.pairs[0]
+                                  : 'Multiple'
+                                }
                               </div>
+                              <div className={`font-bold ${getResultColor(dailySummary.result)}`}>
+                                {formatCurrency(dailySummary.totalPL)}
+                              </div>
+                              {dailySummary.tradeCount > 1 && (
+                                <div className="text-xs opacity-60">
+                                  {dailySummary.tradeCount} trades
+                                </div>
+                              )}
                             </div>
                             <div className="text-xs opacity-75">
-                              R:R {trade.riskReward}
+                              R:R {dailySummary.totalRR.toFixed(2)}
                             </div>
                           </div>
                         ) : (
@@ -278,54 +295,76 @@ export function CalendarView() {
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    {selectedTrade ? (
-                      <div className="space-y-3">
-                        <div className="grid grid-cols-2 gap-3">
-                          <div>
-                            <p className="text-xs text-muted-foreground">Pair</p>
-                            <p className="font-semibold">{selectedTrade.pair || 'N/A'}</p>
+                    {selectedDayTrades.length > 0 ? (
+                      <div className="space-y-4">
+                        {/* Daily Summary */}
+                        <div className="bg-gradient-to-r from-muted/50 to-muted/30 p-3 rounded-lg">
+                          <div className="grid grid-cols-2 gap-3 mb-3">
+                            <div>
+                              <p className="text-xs text-muted-foreground">Total P&L</p>
+                              <p className={`font-bold text-lg ${getResultColor(selectedDaySummary?.result || 'Breakeven')}`}>
+                                {formatCurrency(selectedDaySummary?.totalPL || 0)}
+                              </p>
+                            </div>
+                            <div>
+                              <p className="text-xs text-muted-foreground">Total R:R</p>
+                              <p className="font-semibold">{selectedDaySummary?.totalRR.toFixed(2) || '0.00'}</p>
+                            </div>
                           </div>
-                          <div>
-                            <p className="text-xs text-muted-foreground">Direction</p>
-                            <div className="flex items-center gap-1">
-                              {selectedTrade.direction === 'Long' && <TrendingUp className="h-3 w-3 text-green-600" />}
-                              {selectedTrade.direction === 'Short' && <TrendingDown className="h-3 w-3 text-red-600" />}
-                              <p className="font-semibold">{selectedTrade.direction}</p>
+                          <div className="grid grid-cols-2 gap-3">
+                            <div>
+                              <p className="text-xs text-muted-foreground">Trades</p>
+                              <p className="font-semibold">{selectedDaySummary?.tradeCount || 0}</p>
+                            </div>
+                            <div>
+                              <p className="text-xs text-muted-foreground">Pairs</p>
+                              <p className="font-semibold text-xs">
+                                {selectedDaySummary?.pairs.join(', ') || 'None'}
+                              </p>
                             </div>
                           </div>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-3">
-                          <div>
-                            <p className="text-xs text-muted-foreground">P&L</p>
-                            <p className={`font-bold text-lg ${getResultColor(selectedTrade.result)}`}>
-                              {formatCurrency(selectedTrade.profitLoss)}
-                            </p>
-                          </div>
-                          <div>
-                            <p className="text-xs text-muted-foreground">R:R</p>
-                            <p className="font-semibold">{selectedTrade.riskReward}</p>
-                          </div>
+                        {/* Individual Trades */}
+                        <div className="space-y-2">
+                          <p className="text-sm font-medium text-muted-foreground">Individual Trades:</p>
+                          {selectedDayTrades.map((trade, index) => (
+                            <div key={trade.id} className="border rounded-lg p-3 space-y-2">
+                              <div className="flex items-center justify-between">
+                                <span className="text-xs font-medium">Trade #{index + 1}</span>
+                                <div className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getResultColor(trade.result)} bg-gradient-to-r ${getResultGradient(trade.result)}`}>
+                                  {trade.result}
+                                </div>
+                              </div>
+                              <div className="grid grid-cols-2 gap-2 text-xs">
+                                <div>
+                                  <span className="text-muted-foreground">Pair:</span> {trade.pair || 'N/A'}
+                                </div>
+                                <div className="flex items-center gap-1">
+                                  <span className="text-muted-foreground">Direction:</span>
+                                  {trade.direction === 'Long' && <TrendingUp className="h-3 w-3 text-green-600" />}
+                                  {trade.direction === 'Short' && <TrendingDown className="h-3 w-3 text-red-600" />}
+                                  {trade.direction}
+                                </div>
+                                <div>
+                                  <span className="text-muted-foreground">P&L:</span>
+                                  <span className={`font-semibold ml-1 ${getResultColor(trade.result)}`}>
+                                    {formatCurrency(trade.profitLoss)}
+                                  </span>
+                                </div>
+                                <div>
+                                  <span className="text-muted-foreground">R:R:</span> {trade.riskReward}
+                                </div>
+                              </div>
+                              {trade.emotions && (
+                                <div className="text-xs">
+                                  <span className="text-muted-foreground">Emotions:</span>
+                                  <span className="italic ml-1">"{trade.emotions}"</span>
+                                </div>
+                              )}
+                            </div>
+                          ))}
                         </div>
-
-                        <div>
-                          <p className="text-xs text-muted-foreground">Result</p>
-                          <div className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getResultColor(selectedTrade.result)} bg-gradient-to-r ${getResultGradient(selectedTrade.result)}`}>
-                            {selectedTrade.result}
-                          </div>
-                        </div>
-
-                        <div>
-                          <p className="text-xs text-muted-foreground">Account</p>
-                          <p className="font-semibold">{selectedTrade.account}</p>
-                        </div>
-
-                        {selectedTrade.emotions && (
-                          <div>
-                            <p className="text-xs text-muted-foreground">Emotions</p>
-                            <p className="text-sm italic">"{selectedTrade.emotions}"</p>
-                          </div>
-                        )}
                       </div>
                     ) : (
                       <div className="text-center py-6">
