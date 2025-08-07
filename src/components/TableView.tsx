@@ -168,11 +168,7 @@ export function TableView() {
     }
   }
 
-  const handleCellEdit = (tradeId: string, field: keyof Trade, value: any) => {
-    updateTrade(tradeId, { [field]: value })
-    setEditingCell(null)
-    toast.success('Trade updated successfully!')
-  }
+
 
   const EditableCell = ({ 
     trade, 
@@ -188,14 +184,38 @@ export function TableView() {
     placeholder?: string
   }) => {
     const isEditing = editingCell?.tradeId === trade.id && editingCell?.field === field
+    const [tempValue, setTempValue] = useState(trade[field] as string | number)
     const value = trade[field]
+
+    // Update tempValue when trade value changes or when starting to edit
+    React.useEffect(() => {
+      if (isEditing) {
+        setTempValue(trade[field] as string | number)
+      }
+    }, [isEditing, trade[field]])
+
+    const handleSave = () => {
+      const finalValue = type === 'number' ? (parseFloat(tempValue as string) || 0) : tempValue
+      updateTrade(trade.id, { [field]: finalValue })
+      setEditingCell(null)
+      toast.success('Trade updated successfully!')
+    }
+
+    const handleCancel = () => {
+      setTempValue(trade[field] as string | number)
+      setEditingCell(null)
+    }
 
     if (isEditing) {
       if (type === 'select' && options) {
         return (
           <Select
             value={value as string}
-            onValueChange={(newValue) => handleCellEdit(trade.id, field, newValue)}
+            onValueChange={(newValue) => {
+              updateTrade(trade.id, { [field]: newValue })
+              setEditingCell(null)
+              toast.success('Trade updated successfully!')
+            }}
           >
             <SelectTrigger className="h-8">
               <SelectValue />
@@ -214,16 +234,17 @@ export function TableView() {
       return (
         <Input
           type={type}
-          value={value as string | number}
+          value={tempValue}
           placeholder={placeholder}
           onChange={(e) => {
-            const newValue = type === 'number' ? parseFloat(e.target.value) || 0 : e.target.value
-            handleCellEdit(trade.id, field, newValue)
+            setTempValue(e.target.value)
           }}
-          onBlur={() => setEditingCell(null)}
+          onBlur={handleSave}
           onKeyDown={(e) => {
             if (e.key === 'Enter') {
-              setEditingCell(null)
+              handleSave()
+            } else if (e.key === 'Escape') {
+              handleCancel()
             }
           }}
           className="h-8"
