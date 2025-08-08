@@ -111,16 +111,22 @@ The app supports both light and dark themes:
 - **Dark theme**: Easy on the eyes for extended use
 - **System preference**: Respects your OS theme setting
 
-## 🔄 Future Enhancements
+## 🔌 Integrations
 
-Potential features for future versions:
-- Export to CSV/JSON
-- Import trade data
-- Advanced analytics and charts
-- Trade tags and setups (SMT, BOS, etc.)
-- Multiple account management
-- Backup and sync
-- Performance metrics dashboard
+### TradeLocker (optional)
+This app can sync trades from TradeLocker. Use the “TradeLocker Integration” card on the Dashboard to:
+- Connect with your TradeLocker credentials
+- Select an account
+- Pick a date range
+- Sync and upsert trades into your journal
+
+Notes:
+- Browser apps can be restricted by CORS. If TradeLocker’s API requires secrets or blocks browser CORS, proxy the calls through your backend and set `VITE_TRADELOCKER_BASE_URL` to your proxy URL.
+- Trade deduplication uses `externalId`. Mapping logic lives in `src/lib/tradelocker.ts`.
+
+### Import/Export
+- Import CSV/JSON via the Trades view Import button
+- Export CSV/JSON via the Trades view Export button
 
 ## 🤝 Contributing
 

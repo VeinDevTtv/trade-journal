@@ -14,6 +14,9 @@ interface TradeStore {
   getTradeByDate: (date: string) => Trade | undefined
   getTradesByDate: (date: string) => Trade[]
   getDailyTradeSummary: (date: string) => { totalPL: number; totalRR: number; pairs: string[]; tradeCount: number; result: 'Win' | 'Loss' | 'Breakeven' }
+  // Integration helpers
+  bulkUpsertTrades: (incoming: Omit<Trade, 'id'>[]) => { added: number; updated: number }
+  findByExternalId: (externalId: string) => Trade | undefined
 }
 
 const generateId = () => Math.random().toString(36).substring(2, 15)
@@ -106,6 +109,37 @@ export const useTradeStore = create<TradeStore>()(
         }
 
         return { totalPL, totalRR, pairs, tradeCount, result }
+      },
+
+      // Integration helpers
+      findByExternalId: (externalId: string) => {
+        const { trades } = get()
+        return trades.find(t => t.externalId === externalId)
+      },
+      bulkUpsertTrades: (incoming: Omit<Trade, 'id'>[]) => {
+        let added = 0
+        let updated = 0
+        set((state: TradeStore) => {
+          const existingByExternal: Record<string, Trade> = {}
+          state.trades.forEach(t => {
+            if (t.externalId) existingByExternal[t.externalId] = t
+          })
+          const updatedTrades = [...state.trades]
+          incoming.forEach(inTrade => {
+            if (inTrade.externalId && existingByExternal[inTrade.externalId]) {
+              const idx = updatedTrades.findIndex(t => t.externalId === inTrade.externalId)
+              if (idx >= 0) {
+                updatedTrades[idx] = { ...updatedTrades[idx], ...inTrade }
+                updated++
+              }
+            } else {
+              updatedTrades.push({ ...inTrade, id: generateId() })
+              added++
+            }
+          })
+          return { trades: updatedTrades }
+        })
+        return { added, updated }
       }
     }),
     {
