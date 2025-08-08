@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react'
+import React, { useState, useMemo, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { toast } from 'react-hot-toast'
 import { useTradeStore } from '../store/tradeStore'
@@ -38,6 +38,7 @@ import {
   EyeOff
 } from 'lucide-react'
 import { ExportModal } from './ExportModal'
+import { ImportModal } from './ImportModal'
 import { TradingInsights } from './TradingInsights'
 
 type SortField = 'date' | 'profitLoss' | 'riskReward' | 'pair'
@@ -72,6 +73,7 @@ export function TableView() {
   
   const [editingCell, setEditingCell] = useState<{tradeId: string, field: string} | null>(null)
   const [showExportModal, setShowExportModal] = useState(false)
+  const [showImportModal, setShowImportModal] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [filterResult, setFilterResult] = useState<'all' | 'Win' | 'Loss' | 'Breakeven'>('all')
   const [filterAccount, setFilterAccount] = useState<'all' | 'Funded' | 'Demo' | 'Personal'>('all')
@@ -79,6 +81,7 @@ export function TableView() {
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc')
   const [showFilters, setShowFilters] = useState(false)
   const [bulkSelect, setBulkSelect] = useState<string[]>([])
+  const searchInputRef = useRef<HTMLInputElement | null>(null)
 
   // Filter and sort trades
   const filteredTrades = useMemo(() => {
@@ -120,6 +123,22 @@ export function TableView() {
 
     return filtered
   }, [allTrades, searchQuery, filterResult, filterAccount, sortField, sortDirection])
+
+  // Keyboard shortcuts from App
+  useEffect(() => {
+    const onAdd = () => addNewTrade()
+    const onFocusSearch = () => {
+      if (searchInputRef.current) {
+        searchInputRef.current.focus()
+      }
+    }
+    window.addEventListener('shortcut:add-trade', onAdd as EventListener)
+    window.addEventListener('shortcut:focus-search', onFocusSearch as EventListener)
+    return () => {
+      window.removeEventListener('shortcut:add-trade', onAdd as EventListener)
+      window.removeEventListener('shortcut:focus-search', onFocusSearch as EventListener)
+    }
+  }, [])
 
   const addNewTrade = () => {
     const today = new Date().toISOString().split('T')[0]
@@ -347,6 +366,14 @@ export function TableView() {
               <Download className="h-4 w-4" />
               Export
             </Button>
+            <Button 
+              variant="outline" 
+              onClick={() => setShowImportModal(true)} 
+              className="flex items-center gap-2"
+            >
+              <Download className="h-4 w-4 rotate-180" />
+              Import
+            </Button>
             <Button onClick={addNewTrade} className="flex items-center gap-2">
               <Plus className="h-4 w-4" />
               Add Trade
@@ -366,6 +393,7 @@ export function TableView() {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-10"
+                  ref={searchInputRef}
                 />
               </div>
 
@@ -661,6 +689,10 @@ export function TableView() {
       <ExportModal 
         isOpen={showExportModal} 
         onClose={() => setShowExportModal(false)} 
+      />
+      <ImportModal 
+        isOpen={showImportModal} 
+        onClose={() => setShowImportModal(false)} 
       />
     </div>
   )

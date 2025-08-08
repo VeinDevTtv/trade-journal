@@ -19,7 +19,10 @@ import {
 import logoImage from './logodudde.png'
 
 function App() {
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'table' | 'calendar'>('dashboard')
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'table' | 'calendar'>(() => {
+    const saved = localStorage.getItem('activeTab') as 'dashboard' | 'table' | 'calendar' | null
+    return saved || 'dashboard'
+  })
   const [isDark, setIsDark] = useState(() => {
     return document.documentElement.classList.contains('dark')
   })
@@ -72,6 +75,41 @@ function App() {
       localStorage.setItem('theme', 'light')
     }
   }
+
+  // Persist active tab
+  useEffect(() => {
+    localStorage.setItem('activeTab', activeTab)
+  }, [activeTab])
+
+  // Keyboard shortcuts: t theme, n new trade, / focus search
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      // ignore when typing in inputs
+      const target = e.target as HTMLElement
+      if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || (target as any).isContentEditable)) {
+        return
+      }
+      if (e.key === 't') {
+        e.preventDefault()
+        toggleTheme()
+      }
+      if (e.key === 'n') {
+        e.preventDefault()
+        // Switch to table where add is available; TableView handles default add shortcut too
+        setActiveTab('table')
+        // Dispatch custom event so TableView can listen to create new trade if needed
+        window.dispatchEvent(new CustomEvent('shortcut:add-trade'))
+      }
+      if (e.key === '/') {
+        e.preventDefault()
+        setActiveTab('table')
+        // Let TableView focus search input
+        window.dispatchEvent(new CustomEvent('shortcut:focus-search'))
+      }
+    }
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
+  }, [activeTab, toggleTheme])
 
   const monthNames = [
     'January', 'February', 'March', 'April', 'May', 'June',
@@ -150,12 +188,12 @@ function App() {
                   <div className="flex items-center gap-4">
                     <img 
                       src={logoImage} 
-                      // alt="Trading Journal Pro Logo" 
+                      alt="Trading Journal Pro Logo" 
                       className="h-12 w-auto object-contain"
                     />
                     <div>
                       <CardTitle className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
-                        {/* Trading Journal Pro */}
+                        Trading Journal Pro
                       </CardTitle>
                     </div>
                   </div>
@@ -219,6 +257,15 @@ function App() {
                         className="h-8 w-8 p-0 hover:bg-background"
                       >
                         <ChevronRight className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setCurrentMonth(new Date().getFullYear(), new Date().getMonth() + 1)}
+                        className="h-8 px-2 ml-2"
+                        title="Jump to current month"
+                      >
+                        Today
                       </Button>
                     </div>
                     
