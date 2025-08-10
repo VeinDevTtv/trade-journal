@@ -530,6 +530,33 @@ export function DashboardView() {
                 <p className="text-sm text-muted-foreground">Best Trade</p>
               </div>
             </div>
+
+            {/* Profitability Checklist */}
+            <div className="mt-8">
+              <h3 className="text-lg font-semibold mb-3">Profitability Checklist</h3>
+              <ul className="space-y-2 text-sm">
+                <li className="flex items-start gap-2">
+                  <span className="mt-1 h-2 w-2 rounded-full bg-emerald-500"></span>
+                  Followed a written plan before entering each trade
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="mt-1 h-2 w-2 rounded-full bg-emerald-500"></span>
+                  Risk per trade ≤ 1% and documented R:R
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="mt-1 h-2 w-2 rounded-full bg-emerald-500"></span>
+                  Took only A+ setups during your active session
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="mt-1 h-2 w-2 rounded-full bg-emerald-500"></span>
+                  Logged emotions and lesson per trade
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="mt-1 h-2 w-2 rounded-full bg-emerald-500"></span>
+                  Stopped trading after daily max loss hit
+                </li>
+              </ul>
+            </div>
           </CardContent>
         </Card>
       </motion.div>

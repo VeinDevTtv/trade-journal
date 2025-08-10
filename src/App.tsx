@@ -1,10 +1,10 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, Suspense, lazy } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Toaster } from 'react-hot-toast'
 import { useTradeStore } from './store/tradeStore'
-import { TableView } from './components/TableView'
-import { CalendarView } from './components/CalendarView'
-import { DashboardView } from './components/DashboardView'
+const TableView = lazy(() => import('./components/TableView').then(m => ({ default: m.TableView })))
+const CalendarView = lazy(() => import('./components/CalendarView').then(m => ({ default: m.CalendarView })))
+const DashboardView = lazy(() => import('./components/DashboardView').then(m => ({ default: m.DashboardView })))
 import { Button } from './components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from './components/ui/card'
 import { 
@@ -17,6 +17,7 @@ import {
   PieChart
 } from 'lucide-react'
 import logoImage from './logodudde.png'
+import { Sidebar } from './components/Sidebar'
 
 function App() {
   const [activeTab, setActiveTab] = useState<'dashboard' | 'table' | 'calendar'>(() => {
@@ -341,20 +342,27 @@ function App() {
         </motion.div>
 
 
-        {/* Main Content with smooth transitions */}
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={activeTab}
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20 }}
-            transition={{ duration: 0.3 }}
-          >
-            {activeTab === 'dashboard' && <DashboardView />}
-            {activeTab === 'table' && <TableView />}
-            {activeTab === 'calendar' && <CalendarView />}
-          </motion.div>
-        </AnimatePresence>
+        <div className="flex gap-6">
+          <Sidebar activeTab={activeTab} onChange={(t) => setActiveTab(t)} />
+          {/* Main Content with smooth transitions */}
+          <div className="flex-1 min-w-0">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={activeTab}
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.3 }}
+              >
+                <Suspense fallback={<div className="p-6 text-muted-foreground">Loading...</div>}>
+                  {activeTab === 'dashboard' && <DashboardView />}
+                  {activeTab === 'table' && <TableView />}
+                  {activeTab === 'calendar' && <CalendarView />}
+                </Suspense>
+              </motion.div>
+            </AnimatePresence>
+          </div>
+        </div>
         
         {/* Footer */}
         <motion.footer

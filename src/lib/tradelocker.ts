@@ -90,7 +90,7 @@ export async function getHistoricalTrades(
 
 export function mapTradeLockerToLocal(t: TradeLockerFilledTrade) {
   // Heuristic mapping to our Trade type
-  const direction = t.side === 'BUY' ? 'Long' : 'Short'
+  const direction = (t.side === 'BUY' ? 'Long' : 'Short') as 'Long' | 'Short'
   const date = (t.closeTime || t.openTime || new Date().toISOString()).slice(0, 10)
   return {
     pair: t.symbol,
@@ -98,7 +98,7 @@ export function mapTradeLockerToLocal(t: TradeLockerFilledTrade) {
     time: (t.closeTime || t.openTime || '').slice(11, 16),
     direction,
     profitLoss: Number(t.pnl || 0),
-    result: Number(t.pnl || 0) > 0 ? 'Win' : Number(t.pnl || 0) < 0 ? 'Loss' : 'Breakeven' as const,
+    result: (Number(t.pnl || 0) > 0 ? 'Win' : Number(t.pnl || 0) < 0 ? 'Loss' : 'Breakeven') as 'Win' | 'Loss' | 'Breakeven',
     riskReward: typeof t.rr === 'number' ? t.rr : 0,
     account: 'Personal' as const,
     emotions: '',
