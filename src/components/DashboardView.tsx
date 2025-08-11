@@ -3,7 +3,6 @@ import { motion } from 'framer-motion'
 import { useTradeStore } from '../store/tradeStore'
 import { formatCurrency } from '../lib/utils'
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card'
-import { TradeLockerSync } from './TradeLockerSync'
 import { 
   TrendingUp, 
   DollarSign, 
@@ -233,7 +232,6 @@ export function DashboardView() {
 
   return (
     <div className="space-y-8" ref={dashboardRef}>
-      <TradeLockerSync />
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {statsCards.map((stat, index) => {

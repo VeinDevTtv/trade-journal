@@ -10,10 +10,10 @@ export interface Trade {
   account: 'Funded' | 'Demo' | 'Personal'
   emotions: string
   tags?: string[]
-  // Integration metadata
-  source?: string // e.g., 'TradeLocker'
-  externalId?: string // broker/exchange trade id for dedupe
-  brokerAccount?: string // broker account identifier
+  // Optional metadata
+  source?: string
+  externalId?: string
+  brokerAccount?: string
   openTime?: string // ISO timestamp
   closeTime?: string // ISO timestamp
 }
