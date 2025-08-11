@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from './ui/card'
 import { Input } from './ui/input'
 import { toast } from 'react-hot-toast'
 import { Download, LogIn, RefreshCw } from 'lucide-react'
-import { loginWithCredentials, getAccounts, getHistoricalTrades, mapTradeLockerToLocal, TradeLockerAuth } from '../lib/tradelocker'
+import { loginWithCredentials, getAccounts, getHistoricalTrades, mapTradeLockerToLocal, TradeLockerAuth, setTradeLockerBaseUrl } from '../lib/tradelocker'
 import { useTradeStore } from '../store/tradeStore'
 
 export function TradeLockerSync() {
@@ -18,6 +18,7 @@ export function TradeLockerSync() {
   const [dateFrom, setDateFrom] = useState<string>('')
   const [dateTo, setDateTo] = useState<string>('')
   const [autoSync, setAutoSync] = useState<boolean>(false)
+  const [baseUrl, setBaseUrl] = useState<string>('')
 
   useEffect(() => {
     const saved = localStorage.getItem('tradelocker.auth')
@@ -32,6 +33,8 @@ export function TradeLockerSync() {
     const dt = localStorage.getItem('tradelocker.to')
     if (df) setDateFrom(df)
     if (dt) setDateTo(dt)
+    const bu = localStorage.getItem('tradelocker.baseUrl')
+    if (bu) setBaseUrl(bu)
   }, [])
 
   useEffect(() => {
@@ -53,6 +56,10 @@ export function TradeLockerSync() {
   useEffect(() => {
     localStorage.setItem('tradelocker.to', dateTo)
   }, [dateTo])
+
+  useEffect(() => {
+    if (baseUrl) setTradeLockerBaseUrl(baseUrl)
+  }, [baseUrl])
 
   const canLogin = useMemo(() => email.length > 3 && password.length > 3, [email, password])
 
@@ -132,6 +139,10 @@ export function TradeLockerSync() {
             <Button onClick={handleLogin} disabled={!canLogin || isBusy} className="flex items-center gap-2">
               <LogIn className="h-4 w-4" /> Connect
             </Button>
+            <div className="md:col-span-3 grid grid-cols-1 md:grid-cols-3 gap-3">
+              <Input placeholder="API Base URL (optional)" value={baseUrl} onChange={(e) => setBaseUrl(e.target.value)} />
+              <div className="text-xs text-muted-foreground md:col-span-2 flex items-center">If your region uses a different endpoint or you run a proxy, set it here.</div>
+            </div>
           </div>
         )}
 

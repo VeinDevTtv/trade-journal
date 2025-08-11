@@ -30,24 +30,40 @@ export interface TradeLockerFilledTrade {
   accountId: string
 }
 
-const BASE_URL = (import.meta as any)?.env?.VITE_TRADELOCKER_BASE_URL || 'https://public-api.tradelocker.com'
+function getBaseUrl(): string {
+  try {
+    const saved = localStorage.getItem('tradelocker.baseUrl')
+    if (saved && saved.trim().length > 0) return saved
+  } catch {}
+  return ((import.meta as any)?.env?.VITE_TRADELOCKER_BASE_URL as string) || 'https://public-api.tradelocker.com'
+}
+
+export function setTradeLockerBaseUrl(url: string) {
+  try { localStorage.setItem('tradelocker.baseUrl', url) } catch {}
+}
 
 export async function loginWithCredentials(creds: TradeLockerCredentials): Promise<TradeLockerAuth> {
-  const res = await fetch(`${BASE_URL}/auth/jwt/token`, {
+  const res = await fetch(`${getBaseUrl()}/auth/jwt/token`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ email: creds.email, password: creds.password })
   })
-  if (!res.ok) throw new Error('TradeLocker auth failed')
+  if (!res.ok) {
+    const txt = await safeReadText(res)
+    throw new Error(`TradeLocker auth failed (${res.status})${txt ? `: ${txt}` : ''}`)
+  }
   const data = await res.json()
   return { accessToken: data?.token || data?.accessToken, refreshToken: data?.refreshToken }
 }
 
 export async function getAccounts(auth: TradeLockerAuth): Promise<TradeLockerAccount[]> {
-  const res = await fetch(`${BASE_URL}/auth/jwt/all-accounts`, {
+  const res = await fetch(`${getBaseUrl()}/auth/jwt/all-accounts`, {
     headers: { Authorization: `Bearer ${auth.accessToken}` }
   })
-  if (!res.ok) throw new Error('Failed to fetch accounts')
+  if (!res.ok) {
+    const txt = await safeReadText(res)
+    throw new Error(`Failed to fetch accounts (${res.status})${txt ? `: ${txt}` : ''}`)
+  }
   const data = await res.json()
   // Normalize
   return (Array.isArray(data) ? data : data?.accounts || []).map((a: any) => ({
@@ -63,13 +79,16 @@ export async function getHistoricalTrades(
   params?: { from?: string; to?: string }
 ): Promise<TradeLockerFilledTrade[]> {
   // Endpoint guessed from web search summary. Adjust if docs differ.
-  const url = new URL(`${BASE_URL}/trade/accounts/${accountId}/orders`)
+  const url = new URL(`${getBaseUrl()}/trade/accounts/${accountId}/orders`)
   if (params?.from) url.searchParams.set('from', params.from)
   if (params?.to) url.searchParams.set('to', params.to)
   const res = await fetch(url.toString(), {
     headers: { Authorization: `Bearer ${auth.accessToken}` }
   })
-  if (!res.ok) throw new Error('Failed to fetch orders')
+  if (!res.ok) {
+    const txt = await safeReadText(res)
+    throw new Error(`Failed to fetch orders (${res.status})${txt ? `: ${txt}` : ''}`)
+  }
   const data = await res.json()
 
   // Map to filled trades; filter only filled/closed orders
@@ -108,6 +127,10 @@ export function mapTradeLockerToLocal(t: TradeLockerFilledTrade) {
     openTime: t.openTime,
     closeTime: t.closeTime,
   }
+}
+
+async function safeReadText(res: Response): Promise<string | null> {
+  try { return await res.text() } catch { return null }
 }
 
 
