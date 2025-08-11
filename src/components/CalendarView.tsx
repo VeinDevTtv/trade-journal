@@ -199,9 +199,9 @@ export function CalendarView() {
                       key={day}
                       className={`
                         aspect-square p-2 border-2 rounded-lg cursor-pointer transition-all duration-200
-                        ${isToday ? 'ring-2 ring-primary ring-offset-2' : ''}
+                        ${isToday ? 'ring-2 ring-primary ring-offset-2 ring-offset-background' : ''}
                         ${isSelected ? 'scale-105 shadow-lg' : ''}
-                        ${isHovered ? 'scale-102 shadow-md' : ''}
+                        ${isHovered ? 'scale-[1.02] shadow-md' : ''}
                         ${hasTrades ? getResultBorderColor(dailySummary.result) : 'border-muted'}
                       `}
                       onClick={() => setSelectedDate(dateString)}
