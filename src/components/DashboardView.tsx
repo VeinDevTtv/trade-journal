@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useMemo, useRef } from 'react'
 import { motion } from 'framer-motion'
 import { useTradeStore } from '../store/tradeStore'
 import { formatCurrency } from '../lib/utils'
@@ -13,6 +13,7 @@ import {
   BarChart3,
   PieChart
 } from 'lucide-react'
+import { exportElementAsPng } from '../lib/exportImage'
 import {
   XAxis,
   YAxis,
@@ -30,6 +31,7 @@ import {
 
 export function DashboardView() {
   const { trades: allTrades, currentMonth } = useTradeStore()
+  const dashboardRef = useRef<HTMLDivElement | null>(null)
   
   // Calculate current month trades reactively
   const trades = useMemo(() => {
@@ -230,7 +232,7 @@ export function DashboardView() {
   ].filter(item => item.value > 0)
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8" ref={dashboardRef}>
       <TradeLockerSync />
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -264,7 +266,7 @@ export function DashboardView() {
         })}
       </div>
 
-      {/* Charts Section */}
+        {/* Charts Section + Export */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Cumulative P&L Chart */}
         <motion.div
@@ -509,6 +511,18 @@ export function DashboardView() {
             <CardTitle className="flex items-center gap-2">
               <Activity className="h-5 w-5" />
               Advanced Trading Metrics
+              <button
+                className="ml-auto text-sm underline text-primary hover:text-primary/80"
+                onClick={async () => {
+                  if (dashboardRef.current) {
+                    await exportElementAsPng(dashboardRef.current, {
+                      fileName: `dashboard-${currentMonth.year}-${String(currentMonth.month).padStart(2, '0')}.png`,
+                    })
+                  }
+                }}
+              >
+                Export as Image
+              </button>
             </CardTitle>
           </CardHeader>
           <CardContent>

@@ -14,10 +14,13 @@ import {
   Zap,
   Trophy
 } from 'lucide-react'
+import { useRef } from 'react'
+import { exportElementAsPng } from '../lib/exportImage'
 
 export function TradingInsights() {
   const { getCurrentMonthTrades } = useTradeStore()
   const trades = getCurrentMonthTrades()
+  const insightsRef = useRef<HTMLDivElement | null>(null)
 
   if (trades.length === 0) {
     return (
@@ -126,7 +129,7 @@ export function TradingInsights() {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
     >
-      <Card className="border-0 shadow-lg">
+      <Card className="border-0 shadow-lg" ref={insightsRef}>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Activity className="h-5 w-5" />
@@ -134,6 +137,16 @@ export function TradingInsights() {
             <div className="ml-auto text-sm font-normal text-muted-foreground">
               {trades.length} trades analyzed
             </div>
+            <button
+              className="text-sm underline text-primary hover:text-primary/80"
+              onClick={async () => {
+                if (insightsRef.current) {
+                  await exportElementAsPng(insightsRef.current, { fileName: 'analysis.png' })
+                }
+              }}
+            >
+              Export as Image
+            </button>
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-8">
