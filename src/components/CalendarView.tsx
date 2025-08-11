@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { toast } from 'react-hot-toast'
 import { useTradeStore } from '../store/tradeStore'
-import { formatCurrency } from '../lib/utils'
+import { formatCurrency, formatLocalYMD } from '../lib/utils'
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card'
 import { Button } from './ui/button'
 import { 
@@ -22,9 +22,9 @@ export function CalendarView() {
   // Calculate current month trades reactively
   const currentMonthTrades = useMemo(() => {
     return trades.filter(trade => {
-      const tradeDate = new Date(trade.date)
-      return tradeDate.getFullYear() === currentMonth.year &&
-             tradeDate.getMonth() + 1 === currentMonth.month
+      // Compare via string Y-M-D to avoid timezone shifts
+      const [y, m] = (trade.date || '').split('-')
+      return Number(y) === currentMonth.year && Number(m) === currentMonth.month
     })
   }, [trades, currentMonth])
   
@@ -54,9 +54,7 @@ export function CalendarView() {
     calendarDays.push(day)
   }
 
-  const formatDateString = (day: number) => {
-    return `${currentMonth.year}-${currentMonth.month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`
-  }
+  const formatDateString = (day: number) => `${currentMonth.year}-${String(currentMonth.month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
 
   const getResultColor = (result: string, isBackground = false) => {
     const prefix = isBackground ? 'bg' : 'text'
@@ -190,7 +188,7 @@ export function CalendarView() {
                   const dateString = formatDateString(day)
                   const dailySummary = getDailySummary(dateString)
                   const hasTrades = dailySummary.tradeCount > 0
-                  const isToday = new Date().toDateString() === new Date(dateString).toDateString()
+                  const isToday = formatLocalYMD(new Date()) === dateString
                   const isSelected = selectedDate === dateString
                   const isHovered = hoveredDate === dateString
 
