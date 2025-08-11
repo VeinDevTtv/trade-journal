@@ -198,7 +198,7 @@ export function CalendarView() {
                     <motion.div
                       key={day}
                       className={`
-                        aspect-square p-2 border-2 rounded-lg cursor-pointer transition-all duration-200
+                        aspect-square p-2 border-2 rounded-lg cursor-pointer transition-all duration-200 overflow-hidden
                         ${isToday ? 'ring-2 ring-primary ring-offset-2 ring-offset-background' : ''}
                         ${isSelected ? 'scale-105 shadow-lg' : ''}
                         ${isHovered ? 'scale-[1.02] shadow-md' : ''}
@@ -221,7 +221,7 @@ export function CalendarView() {
                         {/* Trade info */}
                         {hasTrades ? (
                           <div className={`
-                            text-xs p-2 rounded-md border-2 h-full flex flex-col justify-between
+                            text-xs p-2 rounded-md border-2 flex-1 flex flex-col justify-between overflow-hidden break-words
                             bg-gradient-to-br ${getResultGradient(dailySummary.result)}
                             ${getResultBorderColor(dailySummary.result)}
                           `}>
@@ -249,7 +249,7 @@ export function CalendarView() {
                           </div>
                         ) : (
                           <div 
-                            className="text-xs p-2 bg-muted/20 rounded-md border-2 border-dashed border-muted h-full flex flex-col justify-center items-center group hover:bg-muted/40 transition-colors cursor-pointer"
+                            className="text-xs p-2 bg-muted/20 rounded-md border-2 border-dashed border-muted flex-1 flex flex-col justify-center items-center group hover:bg-muted/40 transition-colors cursor-pointer overflow-hidden"
                             onClick={(e) => {
                               e.stopPropagation()
                               addTradeForDate(dateString)
