@@ -4,6 +4,8 @@ import { toast } from 'react-hot-toast'
 import { useTradeStore } from '../store/tradeStore'
 import { formatCurrency, formatLocalYMD } from '../lib/utils'
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card'
+import { exportElementAsPng } from '../lib/exportImage'
+import { useRef } from 'react'
 import { Button } from './ui/button'
 import { 
   Calendar as CalendarIcon, 
@@ -18,6 +20,7 @@ import {
 
 export function CalendarView() {
   const { trades, currentMonth, addTrade, getTradesByDate, getDailyTradeSummary } = useTradeStore()
+  const monthlyPanelRef = useRef<HTMLDivElement | null>(null)
   
   // Calculate current month trades reactively
   const currentMonthTrades = useMemo(() => {
@@ -158,12 +161,24 @@ export function CalendarView() {
           transition={{ duration: 0.6, delay: 0.1 }}
           className="xl:col-span-3"
         >
-          <Card className="border-0 shadow-lg">
+          <Card className="border-0 shadow-lg" ref={monthlyPanelRef}>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <CalendarIcon className="h-5 w-5" />
                 {currentMonth.year} - {['January', 'February', 'March', 'April', 'May', 'June',
                 'July', 'August', 'September', 'October', 'November', 'December'][currentMonth.month - 1]}
+                <button
+                  className="ml-auto text-sm underline text-primary hover:text-primary/80"
+                  onClick={async () => {
+                    if (monthlyPanelRef.current) {
+                      await exportElementAsPng(monthlyPanelRef.current, {
+                        fileName: `calendar-${currentMonth.year}-${String(currentMonth.month).padStart(2, '0')}.png`,
+                      })
+                    }
+                  }}
+                >
+                  Export as Image
+                </button>
               </CardTitle>
             </CardHeader>
             <CardContent className="p-6">

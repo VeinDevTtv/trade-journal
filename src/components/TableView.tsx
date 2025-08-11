@@ -40,6 +40,7 @@ import {
 import { ExportModal } from './ExportModal'
 import { ImportModal } from './ImportModal'
 import { TradingInsights } from './TradingInsights'
+import { exportElementAsPng } from '../lib/exportImage'
 
 type SortField = 'date' | 'profitLoss' | 'riskReward' | 'pair'
 type SortDirection = 'asc' | 'desc'
@@ -82,6 +83,7 @@ export function TableView() {
   const [showFilters, setShowFilters] = useState(false)
   const [bulkSelect, setBulkSelect] = useState<string[]>([])
   const searchInputRef = useRef<HTMLInputElement | null>(null)
+  const monthlySummaryRef = useRef<HTMLDivElement | null>(null)
 
   // Filter and sort trades
   const filteredTrades = useMemo(() => {
@@ -638,11 +640,23 @@ export function TableView() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.3 }}
       >
-        <Card className="border-0 shadow-lg bg-gradient-to-r from-card to-card/90">
+        <Card className="border-0 shadow-lg bg-gradient-to-r from-card to-card/90" ref={monthlySummaryRef}>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <TrendingUp className="h-5 w-5" />
               Monthly Performance Summary
+              <button
+                className="ml-auto text-sm underline text-primary hover:text-primary/80"
+                onClick={async () => {
+                  if (monthlySummaryRef.current) {
+                    await exportElementAsPng(monthlySummaryRef.current, {
+                      fileName: `monthly-summary-${currentMonth.year}-${String(currentMonth.month).padStart(2, '0')}.png`,
+                    })
+                  }
+                }}
+              >
+                Export as Image
+              </button>
             </CardTitle>
           </CardHeader>
           <CardContent>
