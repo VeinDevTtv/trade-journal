@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import { Trade, TradeSummary, Goal, GoalSummary } from '../types/trade'
+import { Trade, TradeSummary, Goal, GoalSummary, GoalHistoryEntry } from '../types/trade'
 
 interface TradeStore {
   trades: Trade[]
@@ -19,13 +19,15 @@ interface TradeStore {
   bulkUpsertTrades: (incoming: Omit<Trade, 'id'>[]) => { added: number; updated: number }
   findByExternalId: (externalId: string) => Trade | undefined
   // Goals management
-  addGoal: (goal: Omit<Goal, 'id' | 'createdAt' | 'updatedAt'>) => void
-  updateGoal: (id: string, goal: Partial<Goal>) => void
-  deleteGoal: (id: string) => void
-  getGoals: () => Goal[]
+  addGoal: (goal: Omit<Goal, 'id' | 'createdAt' | 'updatedAt' | 'history'>) => void
+  updateGoal: (id: string, goal: Partial<Goal>, note?: string) => void
+  deleteGoal: (id: string, hard?: boolean) => void
+  getGoals: (includeArchived?: boolean) => Goal[]
   getGoalSummary: () => GoalSummary
   allocateProfitToGoals: (profitAmount: number) => void
   getGoalById: (id: string) => Goal | undefined
+  addGoalHistoryEntry: (goalId: string, entry: Omit<GoalHistoryEntry, 'id' | 'timestamp'>) => void
+  toggleGoalStatus: (id: string, status: Goal['status']) => void
 }
 
 const generateId = () => Math.random().toString(36).substring(2, 15)
@@ -175,41 +177,148 @@ export const useTradeStore = create<TradeStore>()(
       },
 
       // Goals management methods
-      addGoal: (goal: Omit<Goal, 'id' | 'createdAt' | 'updatedAt'>) => {
+      addGoal: (goal: Omit<Goal, 'id' | 'createdAt' | 'updatedAt' | 'history'>) => {
         const now = new Date().toISOString()
+        const historyEntry: GoalHistoryEntry = {
+          id: generateId(),
+          timestamp: now,
+          action: 'Created',
+          note: `Goal "${goal.title}" created with target of $${goal.targetAmount.toLocaleString()}`
+        }
+        
         const newGoal: Goal = { 
           ...goal, 
           id: generateId(),
           createdAt: now,
-          updatedAt: now
+          updatedAt: now,
+          origin: goal.origin || 'Manual',
+          history: [historyEntry],
+          isArchived: false
         }
         set((state: TradeStore) => ({
           goals: [...state.goals, newGoal]
         }))
       },
 
-      updateGoal: (id: string, updatedFields: Partial<Goal>) => {
+      updateGoal: (id: string, updatedFields: Partial<Goal>, note?: string) => {
         const now = new Date().toISOString()
+        const state = get()
+        const existingGoal = state.goals.find(g => g.id === id)
+        
+        if (!existingGoal) return
+        
+        // Track changes for history
+        const changes: { field: string; oldValue: any; newValue: any }[] = []
+        Object.keys(updatedFields).forEach(field => {
+          const oldValue = (existingGoal as any)[field]
+          const newValue = (updatedFields as any)[field]
+          if (oldValue !== newValue && field !== 'updatedAt') {
+            changes.push({ field, oldValue, newValue })
+          }
+        })
+        
+        const historyEntry: GoalHistoryEntry = {
+          id: generateId(),
+          timestamp: now,
+          action: 'Updated',
+          changes,
+          note: note || `Goal updated`
+        }
+        
         set((state: TradeStore) => ({
           goals: state.goals.map((goal: Goal) => 
-            goal.id === id ? { ...goal, ...updatedFields, updatedAt: now } : goal
+            goal.id === id ? { 
+              ...goal, 
+              ...updatedFields, 
+              updatedAt: now,
+              history: [...goal.history, historyEntry]
+            } : goal
           )
         }))
       },
 
-      deleteGoal: (id: string) => set((state: TradeStore) => ({
-        goals: state.goals.filter((goal: Goal) => goal.id !== id)
-      })),
+      deleteGoal: (id: string, hard = false) => {
+        if (hard) {
+          // Permanently delete
+          set((state: TradeStore) => ({
+            goals: state.goals.filter((goal: Goal) => goal.id !== id)
+          }))
+        } else {
+          // Soft delete (archive)
+          const now = new Date().toISOString()
+          const historyEntry: GoalHistoryEntry = {
+            id: generateId(),
+            timestamp: now,
+            action: 'Deleted',
+            note: 'Goal archived'
+          }
+          
+          set((state: TradeStore) => ({
+            goals: state.goals.map((goal: Goal) => 
+              goal.id === id ? {
+                ...goal,
+                isArchived: true,
+                status: 'Paused' as const,
+                updatedAt: now,
+                history: [...goal.history, historyEntry]
+              } : goal
+            )
+          }))
+        }
+      },
 
-      getGoals: () => get().goals,
+      getGoals: (includeArchived = false) => {
+        const { goals } = get()
+        return includeArchived ? goals : goals.filter(goal => !goal.isArchived)
+      },
 
       getGoalById: (id: string) => {
         const { goals } = get()
         return goals.find(goal => goal.id === id)
       },
 
+      addGoalHistoryEntry: (goalId: string, entry: Omit<GoalHistoryEntry, 'id' | 'timestamp'>) => {
+        const now = new Date().toISOString()
+        const historyEntry: GoalHistoryEntry = {
+          ...entry,
+          id: generateId(),
+          timestamp: now
+        }
+        
+        set((state: TradeStore) => ({
+          goals: state.goals.map((goal: Goal) => 
+            goal.id === goalId ? {
+              ...goal,
+              history: [...goal.history, historyEntry]
+            } : goal
+          )
+        }))
+      },
+
+      toggleGoalStatus: (id: string, status: Goal['status']) => {
+        const now = new Date().toISOString()
+        const historyEntry: GoalHistoryEntry = {
+          id: generateId(),
+          timestamp: now,
+          action: status === 'Completed' ? 'Completed' : status === 'Paused' ? 'Paused' : 'Resumed',
+          note: `Goal status changed to ${status}`
+        }
+        
+        set((state: TradeStore) => ({
+          goals: state.goals.map((goal: Goal) => 
+            goal.id === id ? {
+              ...goal,
+              status,
+              completedAt: status === 'Completed' ? now : goal.completedAt,
+              updatedAt: now,
+              history: [...goal.history, historyEntry]
+            } : goal
+          )
+        }))
+      },
+
       getGoalSummary: (): GoalSummary => {
-        const { goals } = get()
+        const goals = get().getGoals() // Use getGoals to exclude archived
         const activeGoals = goals.filter(goal => goal.status === 'Active')
         const completedGoals = goals.filter(goal => goal.status === 'Completed')
         
@@ -231,20 +340,35 @@ export const useTradeStore = create<TradeStore>()(
       allocateProfitToGoals: (profitAmount: number) => {
         if (profitAmount <= 0) return
         
+        const now = new Date().toISOString()
+        
         set((state: TradeStore) => ({
           goals: state.goals.map((goal: Goal) => {
-            if (goal.status !== 'Active') return goal
+            if (goal.status !== 'Active' || goal.isArchived) return goal
             
             const allocation = (goal.profitAllocationPercentage / 100) * profitAmount
+            if (allocation === 0) return goal
+            
             const newCurrentAmount = goal.currentAmount + allocation
             const isCompleted = newCurrentAmount >= goal.targetAmount
+            
+            const historyEntry: GoalHistoryEntry = {
+              id: generateId(),
+              timestamp: now,
+              action: isCompleted ? 'Completed' : 'Progress',
+              amount: allocation,
+              note: isCompleted 
+                ? `Goal completed! Final allocation: $${allocation.toFixed(2)}` 
+                : `Profit allocated: $${allocation.toFixed(2)}`
+            }
             
             return {
               ...goal,
               currentAmount: newCurrentAmount,
               status: isCompleted ? 'Completed' as const : goal.status,
-              completedAt: isCompleted ? new Date().toISOString() : goal.completedAt,
-              updatedAt: new Date().toISOString()
+              completedAt: isCompleted ? now : goal.completedAt,
+              updatedAt: now,
+              history: [...goal.history, historyEntry]
             }
           })
         }))

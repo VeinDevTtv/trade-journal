@@ -45,6 +45,25 @@ export interface Goal {
   completedAt?: string
   category?: string // Optional categorization like 'Emergency Fund', 'Investment', 'Purchase', etc.
   notes?: string
+  // Enhanced tracking
+  origin: 'Manual' | 'Auto' | 'Template' | 'Import' // How the goal was created
+  history: GoalHistoryEntry[] // Track changes over time
+  tags?: string[] // Optional tags for better organization
+  targetDate?: string // Optional target completion date
+  isArchived?: boolean // Soft delete option
+}
+
+export interface GoalHistoryEntry {
+  id: string
+  timestamp: string
+  action: 'Created' | 'Updated' | 'Progress' | 'Completed' | 'Paused' | 'Resumed' | 'Deleted'
+  changes?: {
+    field: string
+    oldValue: any
+    newValue: any
+  }[]
+  amount?: number // For progress/allocation entries
+  note?: string
 }
 
 export interface GoalSummary {

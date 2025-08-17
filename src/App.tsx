@@ -5,7 +5,7 @@ import { useTradeStore } from './store/tradeStore'
 const TableView = lazy(() => import('./components/TableView').then(m => ({ default: m.TableView })))
 const CalendarView = lazy(() => import('./components/CalendarView').then(m => ({ default: m.CalendarView })))
 const DashboardView = lazy(() => import('./components/DashboardView').then(m => ({ default: m.DashboardView })))
-const GoalsView = lazy(() => import('./components/GoalsView').then(m => ({ default: m.GoalsView })))
+const GoalsView = lazy(() => import('./components/GoalsView'))
 import { Button } from './components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from './components/ui/card'
 import { 
