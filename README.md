@@ -1,152 +1,113 @@
-# 📊 Trade Journal
+# Trading Journal
 
-A modern, Notion-style trading journal built with React, TypeScript, and shadcn/ui. Track your trades with beautiful table and calendar views, analyze your performance, and improve your trading strategy.
+A comprehensive trading journal application built with React, TypeScript, and Tailwind CSS. Track your trades, analyze performance, and gain insights into your trading patterns.
 
-## ✨ Features
+## Features
 
-### 📊 Table View
-- **Notion-style table** with inline editing for all fields
-- **Add/delete trades** with intuitive controls
-- **Real-time summary** showing total P&L, R:R, win rate, and trade count
-- **Editable columns**: Pair, Date, Direction, P&L, Result, R:R, Account, Emotions
-- **Smart formatting**: Currency formatting, color-coded results (Win/Loss/Breakeven)
+### 📊 **Dashboard View**
+- **Performance Overview**: Visual representation of your trading performance with key metrics
+- **P&L Charts**: Daily and cumulative profit/loss tracking
+- **Pair Performance**: Analysis of how different currency pairs perform
+- **Advanced Metrics**: Profit factor, consecutive wins/losses, and more
+- **High-Quality Image Export**: Export your dashboard as a professional PNG image
 
-### 🗓️ Calendar View
-- **Monthly calendar layout** showing all trades at a glance
-- **Trade details per day**: Pair, P&L, R:R, Result, Account type
-- **Visual indicators**: Color-coded results (green=win, red=loss, yellow=breakeven)
-- **No-trade days**: Clearly marked with "No Trade" and default values
-- **Monthly statistics**: Trading days, best day, worst day
+### 📅 **Calendar View**
+- **Monthly Overview**: Visual calendar showing daily trading activity
+- **Trade Summary**: Quick view of daily performance and trade counts
+- **Color-Coded Results**: Easy identification of winning/losing days
+- **Professional Image Export**: Generate beautiful calendar summaries
 
-### 🛠️ Core Features
-- **Month navigation**: Navigate between months with arrow controls
-- **Dark/Light theme toggle**: Beautiful theme switching
-- **Data persistence**: All data saved to localStorage
-- **Responsive design**: Works perfectly on desktop and mobile
-- **TypeScript**: Fully typed for better development experience
+### 📋 **Table View**
+- **Comprehensive Trade List**: Detailed view of all trades with filtering and sorting
+- **Bulk Operations**: Select and manage multiple trades at once
+- **Advanced Filtering**: Filter by result, account type, date range, and more
+- **Monthly Summary Export**: Create professional performance summaries
 
-## 🚀 Getting Started
+### 🧠 **Trading Insights**
+- **Performance Analysis**: Deep dive into your trading patterns
+- **Direction Analysis**: Compare long vs. short trade performance
+- **Account Performance**: Track performance across different account types
+- **Streak Analysis**: Monitor consecutive wins and losses
+- **Professional Reports**: Export insights as high-quality images
 
-### Prerequisites
-- Node.js (v16 or higher)
-- npm or yarn
+### 📤 **Export Options**
+- **CSV Export**: Spreadsheet-friendly format for data analysis
+- **JSON Export**: Structured data with comprehensive summaries
+- **PNG Export**: **NEW!** High-quality, professionally styled images
+  - Beautiful gradients and modern design
+  - Optimized for sharing and presentations
+  - Multiple export templates (Dashboard, Calendar, Table, Insights)
+  - High resolution (3x scale) for crisp images
 
-### Installation
+## Image Export Features
 
-1. **Clone the repository**
-   ```bash
-   git clone <your-repo-url>
-   cd trade-journal
-   ```
+The new image export system creates professional, publication-ready images instead of simple screenshots:
 
-2. **Install dependencies**
+### ✨ **Professional Design**
+- **Modern Gradients**: Beautiful background gradients and card designs
+- **Typography**: Professional fonts with proper spacing and hierarchy
+- **Color Schemes**: Consistent, visually appealing color palettes
+- **Visual Elements**: Subtle shadows, borders, and decorative accents
+
+### 🎯 **Export Templates**
+- **Dashboard Template**: Key metrics with metric cards and summaries
+- **Calendar Template**: Monthly overview with statistics
+- **Table Template**: Performance summary with detailed breakdowns
+- **Insights Template**: Analysis results with top-performing pairs
+
+### 📱 **High Quality**
+- **3x Resolution**: High-DPI images perfect for presentations
+- **Optimized Rendering**: Professional-grade image quality
+- **Consistent Sizing**: Standardized dimensions for all exports
+- **Professional Branding**: "Trading Journal Pro" watermark
+
+## Getting Started
+
+1. **Install Dependencies**
    ```bash
    npm install
    ```
 
-3. **Start development server**
+2. **Start Development Server**
    ```bash
    npm run dev
    ```
 
-4. **Open your browser**
-   Navigate to `http://localhost:5173`
+3. **Build for Production**
+   ```bash
+   npm run build
+   ```
 
-## 🎯 How to Use
+## Usage
 
-### Adding Trades
-1. Go to the **Table View**
-2. Click **"Add Trade"** button
-3. Click on any cell to edit inline:
-   - **Pair**: Trading instrument (e.g., XAUUSD, US100)
-   - **Date**: Use date picker or type YYYY-MM-DD
-   - **Direction**: Select Long, Short, or -
-   - **P&L**: Enter profit/loss amount (supports negatives)
-   - **Result**: Select Win, Loss, or Breakeven
-   - **R:R**: Risk-to-reward ratio
-   - **Account**: Select Funded, Demo, or Personal
-   - **Emotions**: Free text for trading psychology notes
+### Exporting Images
 
-### Viewing Calendar
-1. Switch to **Calendar View**
-2. See all trades laid out in calendar format
-3. Each day shows:
-   - Trading pair
-   - Profit/Loss amount
-   - Risk-reward ratio
-   - Account type
-4. Days without trades show "No Trade" with default values
+1. **Dashboard Export**: Click "Export as Image" in the Advanced Trading Metrics section
+2. **Calendar Export**: Use the export button in the Monthly Calendar View
+3. **Table Export**: Export monthly summaries from the Table View
+4. **Insights Export**: Generate analysis reports from Trading Insights
+5. **Bulk Export**: Use the Export Modal for CSV, JSON, or PNG formats
 
-### Navigation
-- **Month arrows**: Navigate between months
-- **Theme toggle**: Switch between light and dark modes
-- **Tab switching**: Toggle between Table and Calendar views
+### Export Options
 
-## 🧰 Tech Stack
+- **Scale**: 3x resolution for high-quality images
+- **Quality**: Maximum PNG quality (1.0)
+- **Format**: Professional templates with consistent styling
+- **Naming**: Automatic filename generation with dates
 
-- **React 18** - Modern React with hooks
-- **TypeScript** - Type safety and better DX
-- **Vite** - Fast build tool and dev server
-- **Tailwind CSS** - Utility-first CSS framework
-- **shadcn/ui** - Beautiful, accessible UI components
-- **Zustand** - Lightweight state management
-- **Lucide React** - Beautiful icons
-- **date-fns** - Date manipulation utilities
+## Technology Stack
 
-## 📱 Responsive Design
+- **Frontend**: React 18 + TypeScript
+- **Styling**: Tailwind CSS + Framer Motion
+- **State Management**: Zustand
+- **Charts**: Recharts
+- **Image Export**: html2canvas with custom templates
+- **Build Tool**: Vite
 
-The application is fully responsive and works seamlessly on:
-- Desktop computers
-- Tablets
-- Mobile phones
+## Contributing
 
-## 💾 Data Persistence
+This project is open for contributions. Please feel free to submit issues and pull requests.
 
-All trade data is automatically saved to your browser's localStorage. Your data persists between sessions and browser restarts.
+## License
 
-## 🎨 Theming
-
-The app supports both light and dark themes:
-- **Light theme**: Clean, professional look
-- **Dark theme**: Easy on the eyes for extended use
-- **System preference**: Respects your OS theme setting
-
-## 🔌 Integrations
-
-### TradeLocker (optional)
-This app can sync trades from TradeLocker. Use the “TradeLocker Integration” card on the Dashboard to:
-- Connect with your TradeLocker credentials
-- Select an account
-- Pick a date range
-- Sync and upsert trades into your journal
-
-Notes:
-- Browser apps can be restricted by CORS. If TradeLocker’s API requires secrets or blocks browser CORS, proxy the calls through your backend and set `VITE_TRADELOCKER_BASE_URL` to your proxy URL.
-- Trade deduplication uses `externalId`. Mapping logic lives in `src/lib/tradelocker.ts`.
-
-### Import/Export
-- Import CSV/JSON via the Trades view Import button
-- Export CSV/JSON via the Trades view Export button
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🙏 Acknowledgments
-
-- [shadcn/ui](https://ui.shadcn.com/) for the beautiful component library
-- [Tailwind CSS](https://tailwindcss.com/) for the utility-first CSS framework
-- [Lucide](https://lucide.dev/) for the icon set
-- [Zustand](https://github.com/pmndrs/zustand) for state management
-
----
-
-Built with ❤️ for traders who want to improve their performance through better journaling. 
+MIT License - feel free to use this project for your trading journal needs. 

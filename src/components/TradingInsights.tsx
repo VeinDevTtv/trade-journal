@@ -15,7 +15,7 @@ import {
   Trophy
 } from 'lucide-react'
 import { useRef } from 'react'
-import { exportElementAsPng } from '../lib/exportImage'
+import { createStyledExport } from '../lib/exportImage'
 
 export function TradingInsights() {
   const { getCurrentMonthTrades } = useTradeStore()
@@ -140,9 +140,35 @@ export function TradingInsights() {
             <button
               className="text-sm underline text-primary hover:text-primary/80"
               onClick={async () => {
-                if (insightsRef.current) {
-                  await exportElementAsPng(insightsRef.current, { fileName: 'analysis.png' })
+                const topPairs = Object.entries(mostTradedPairs)
+                  .sort((a, b) => b[1] - a[1])
+                  .slice(0, 4)
+                  .map(([pair, count]) => ({
+                    pair,
+                    winRate: trades.filter(t => t.pair === pair && t.result === 'Win').length / count * 100
+                  }))
+                
+                const exportData = {
+                  title: 'Trading Insights Analysis',
+                  subtitle: `${trades.length} trades analyzed`,
+                  data: {
+                    topPairs,
+                    avgWin,
+                    avgLoss,
+                    profitFactor,
+                    maxWinStreak,
+                    maxLossStreak,
+                    longWinRate,
+                    shortWinRate
+                  },
+                  type: 'insights' as const
                 }
+                
+                await createStyledExport(exportData, {
+                  fileName: `trading-insights-${new Date().toISOString().split('T')[0]}.png`,
+                  scale: 3,
+                  quality: 1.0
+                })
               }}
             >
               Export as Image

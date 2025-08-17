@@ -12,7 +12,7 @@ import {
   BarChart3,
   PieChart
 } from 'lucide-react'
-import { exportElementAsPng } from '../lib/exportImage'
+import { createStyledExport } from '../lib/exportImage'
 import {
   XAxis,
   YAxis,
@@ -512,11 +512,23 @@ export function DashboardView() {
               <button
                 className="ml-auto text-sm underline text-primary hover:text-primary/80"
                 onClick={async () => {
-                  if (dashboardRef.current) {
-                    await exportElementAsPng(dashboardRef.current, {
-                      fileName: `dashboard-${currentMonth.year}-${String(currentMonth.month).padStart(2, '0')}.png`,
-                    })
+                  const exportData = {
+                    title: 'Trading Dashboard',
+                    subtitle: `${currentMonth.year} - ${currentMonth.month.toString().padStart(2, '0')}`,
+                    data: {
+                      totalProfitLoss: summary.totalProfitLoss,
+                      winRate: summary.winRate,
+                      totalTrades: summary.totalTrades,
+                      avgTrade: summary.totalTrades > 0 ? summary.totalProfitLoss / summary.totalTrades : 0
+                    },
+                    type: 'dashboard' as const
                   }
+                  
+                  await createStyledExport(exportData, {
+                    fileName: `dashboard-${currentMonth.year}-${String(currentMonth.month).padStart(2, '0')}.png`,
+                    scale: 3,
+                    quality: 1.0
+                  })
                 }}
               >
                 Export as Image

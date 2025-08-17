@@ -4,7 +4,7 @@ import { toast } from 'react-hot-toast'
 import { useTradeStore } from '../store/tradeStore'
 import { formatCurrency, formatLocalYMD } from '../lib/utils'
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card'
-import { exportElementAsPng } from '../lib/exportImage'
+import { createStyledExport } from '../lib/exportImage'
 import { useRef } from 'react'
 import { Button } from './ui/button'
 import { 
@@ -169,13 +169,31 @@ export function CalendarView() {
                 'July', 'August', 'September', 'October', 'November', 'December'][currentMonth.month - 1]}
                 <button
                   className="ml-auto text-sm underline text-primary hover:text-primary/80"
-                  onClick={async () => {
-                    if (monthlyPanelRef.current) {
-                      await exportElementAsPng(monthlyPanelRef.current, {
-                        fileName: `calendar-${currentMonth.year}-${String(currentMonth.month).padStart(2, '0')}.png`,
-                      })
-                    }
-                  }}
+                                  onClick={async () => {
+                  const monthName = new Date(currentMonth.year, currentMonth.month - 1).toLocaleDateString('en-US', { month: 'long' })
+                  const totalTrades = currentMonthTrades.length
+                  const totalPnL = currentMonthTrades.reduce((sum: number, t: any) => sum + t.profitLoss, 0)
+                  const winRate = totalTrades > 0 ? (currentMonthTrades.filter((t: any) => t.result === 'Win').length / totalTrades) * 100 : 0
+                  
+                  const exportData = {
+                    title: 'Monthly Calendar View',
+                    subtitle: `${monthName} ${currentMonth.year}`,
+                    data: {
+                      month: monthName,
+                      year: currentMonth.year,
+                      totalTrades: totalTrades,
+                      totalPnL: totalPnL,
+                      winRate: winRate
+                    },
+                    type: 'calendar' as const
+                  }
+                  
+                  await createStyledExport(exportData, {
+                    fileName: `calendar-${currentMonth.year}-${String(currentMonth.month).padStart(2, '0')}.png`,
+                    scale: 3,
+                    quality: 1.0
+                  })
+                }}
                 >
                   Export as Image
                 </button>

@@ -2,7 +2,8 @@ import { useState } from 'react'
 import { useTradeStore } from '../store/tradeStore'
 import { Button } from './ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card'
-import { Download, X } from 'lucide-react'
+import { Download, X, Image as ImageIcon } from 'lucide-react'
+import { createStyledExport } from '../lib/exportImage'
 
 interface ExportModalProps {
   isOpen: boolean
@@ -11,7 +12,7 @@ interface ExportModalProps {
 
 export function ExportModal({ isOpen, onClose }: ExportModalProps) {
   const { getCurrentMonthTrades, currentMonth } = useTradeStore()
-  const [exportFormat, setExportFormat] = useState<'csv' | 'json'>('csv')
+  const [exportFormat, setExportFormat] = useState<'csv' | 'json' | 'png'>('csv')
   
   if (!isOpen) return null
 
@@ -68,11 +69,46 @@ export function ExportModal({ isOpen, onClose }: ExportModalProps) {
     onClose()
   }
 
+  const exportToPNG = async () => {
+    try {
+      const totalProfitLoss = trades.reduce((sum, t) => sum + t.profitLoss, 0)
+      const winRate = trades.length > 0 ? (trades.filter(t => t.result === 'Win').length / trades.length) * 100 : 0
+      const totalRiskReward = trades.reduce((sum, t) => sum + t.riskReward, 0)
+      
+      const exportData = {
+        title: 'Monthly Trading Summary',
+        subtitle: `${currentMonth.year} - ${currentMonth.month.toString().padStart(2, '0')}`,
+        data: {
+          totalTrades: trades.length,
+          winningTrades: trades.filter(t => t.result === 'Win').length,
+          losingTrades: trades.filter(t => t.result === 'Loss').length,
+          winRate: winRate,
+          totalPnL: totalProfitLoss,
+          avgRiskReward: totalRiskReward / trades.length || 0
+        },
+        type: 'table' as const
+      }
+
+      await createStyledExport(exportData, {
+        fileName: `trades-summary-${currentMonth.year}-${currentMonth.month.toString().padStart(2, '0')}.png`,
+        scale: 3,
+        quality: 1.0
+      })
+      
+      onClose()
+    } catch (error) {
+      console.error('PNG export failed:', error)
+      // You could add a toast notification here
+    }
+  }
+
   const handleExport = () => {
     if (exportFormat === 'csv') {
       exportToCSV()
-    } else {
+    } else if (exportFormat === 'json') {
       exportToJSON()
+    } else if (exportFormat === 'png') {
+      exportToPNG()
     }
   }
 
@@ -112,6 +148,15 @@ export function ExportModal({ isOpen, onClose }: ExportModalProps) {
                 />
                 <span>JSON - Data format with summary</span>
               </label>
+              <label className="flex items-center space-x-2">
+                <input
+                  type="radio"
+                  checked={exportFormat === 'png'}
+                  onChange={() => setExportFormat('png')}
+                  className="w-4 h-4"
+                />
+                <span>PNG - High-quality image summary</span>
+              </label>
             </div>
           </div>
 
@@ -120,7 +165,7 @@ export function ExportModal({ isOpen, onClose }: ExportModalProps) {
               Cancel
             </Button>
             <Button onClick={handleExport} className="flex-1 flex items-center gap-2">
-              <Download className="h-4 w-4" />
+              {exportFormat === 'png' ? <ImageIcon className="h-4 w-4" /> : <Download className="h-4 w-4" />}
               Export {exportFormat.toUpperCase()}
             </Button>
           </div>

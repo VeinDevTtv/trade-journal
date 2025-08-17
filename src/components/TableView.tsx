@@ -40,7 +40,7 @@ import {
 import { ExportModal } from './ExportModal'
 import { ImportModal } from './ImportModal'
 import { TradingInsights } from './TradingInsights'
-import { exportElementAsPng } from '../lib/exportImage'
+import { createStyledExport } from '../lib/exportImage'
 
 type SortField = 'date' | 'profitLoss' | 'riskReward' | 'pair'
 type SortDirection = 'asc' | 'desc'
@@ -648,11 +648,27 @@ export function TableView() {
               <button
                 className="ml-auto text-sm underline text-primary hover:text-primary/80"
                 onClick={async () => {
-                  if (monthlySummaryRef.current) {
-                    await exportElementAsPng(monthlySummaryRef.current, {
-                      fileName: `monthly-summary-${currentMonth.year}-${String(currentMonth.month).padStart(2, '0')}.png`,
-                    })
+                  const monthName = new Date(currentMonth.year, currentMonth.month - 1).toLocaleDateString('en-US', { month: 'long' })
+                  
+                  const exportData = {
+                    title: 'Monthly Performance Summary',
+                    subtitle: `${monthName} ${currentMonth.year}`,
+                    data: {
+                      totalTrades: summary.totalTrades,
+                      winningTrades: allTrades.filter(t => t.result === 'Win').length,
+                      losingTrades: allTrades.filter(t => t.result === 'Loss').length,
+                      winRate: summary.winRate,
+                      totalPnL: summary.totalProfitLoss,
+                      avgRiskReward: summary.totalRiskReward / summary.totalTrades || 0
+                    },
+                    type: 'table' as const
                   }
+                  
+                  await createStyledExport(exportData, {
+                    fileName: `monthly-summary-${currentMonth.year}-${String(currentMonth.month).padStart(2, '0')}.png`,
+                    scale: 3,
+                    quality: 1.0
+                  })
                 }}
               >
                 Export as Image
