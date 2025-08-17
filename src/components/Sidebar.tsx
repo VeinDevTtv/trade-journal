@@ -1,9 +1,9 @@
 import React from 'react'
 import { Button } from './ui/button'
 import { Card } from './ui/card'
-import { PieChart, BarChart3, Calendar } from 'lucide-react'
+import { PieChart, BarChart3, Calendar, Target } from 'lucide-react'
 
-type TabId = 'dashboard' | 'table' | 'calendar'
+type TabId = 'dashboard' | 'table' | 'calendar' | 'goals'
 
 interface SidebarProps {
   activeTab: TabId
@@ -14,6 +14,7 @@ const NAV_ITEMS: Array<{ id: TabId; label: string; icon: React.ComponentType<any
   { id: 'dashboard', label: 'Dashboard', icon: PieChart, description: 'Overview & Analytics' },
   { id: 'table', label: 'Trades', icon: BarChart3, description: 'Trade Management' },
   { id: 'calendar', label: 'Calendar', icon: Calendar, description: 'Daily View' },
+  { id: 'goals', label: 'Goals', icon: Target, description: 'Financial Goals' },
 ]
 
 export function Sidebar({ activeTab, onChange }: SidebarProps) {

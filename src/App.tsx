@@ -5,6 +5,7 @@ import { useTradeStore } from './store/tradeStore'
 const TableView = lazy(() => import('./components/TableView').then(m => ({ default: m.TableView })))
 const CalendarView = lazy(() => import('./components/CalendarView').then(m => ({ default: m.CalendarView })))
 const DashboardView = lazy(() => import('./components/DashboardView').then(m => ({ default: m.DashboardView })))
+const GoalsView = lazy(() => import('./components/GoalsView').then(m => ({ default: m.GoalsView })))
 import { Button } from './components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from './components/ui/card'
 import { 
@@ -14,14 +15,15 @@ import {
   Sun, 
   ChevronLeft,
   ChevronRight,
-  PieChart
+  PieChart,
+  Target
 } from 'lucide-react'
 import logoImage from './logodudde.png'
 import { Sidebar } from './components/Sidebar'
 
 function App() {
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'table' | 'calendar'>(() => {
-    const saved = localStorage.getItem('activeTab') as 'dashboard' | 'table' | 'calendar' | null
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'table' | 'calendar' | 'goals'>(() => {
+    const saved = localStorage.getItem('activeTab') as 'dashboard' | 'table' | 'calendar' | 'goals' | null
     return saved || 'dashboard'
   })
   const [isDark, setIsDark] = useState(() => {
@@ -158,6 +160,12 @@ function App() {
       label: 'Calendar', 
       icon: Calendar,
       description: 'Daily View'
+    },
+    { 
+      id: 'goals', 
+      label: 'Goals', 
+      icon: Target,
+      description: 'Financial Goals'
     }
   ]
 
@@ -358,6 +366,7 @@ function App() {
                   {activeTab === 'dashboard' && <DashboardView />}
                   {activeTab === 'table' && <TableView />}
                   {activeTab === 'calendar' && <CalendarView />}
+                  {activeTab === 'goals' && <GoalsView />}
                 </Suspense>
               </motion.div>
             </AnimatePresence>

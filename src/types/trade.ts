@@ -29,4 +29,29 @@ export interface TradeSummary {
   totalRiskReward: number
   winRate: number
   totalTrades: number
+}
+
+export interface Goal {
+  id: string
+  title: string
+  description: string
+  targetAmount: number
+  currentAmount: number
+  priority: 'Low' | 'Medium' | 'High'
+  profitAllocationPercentage: number // What percentage of profit goes to this goal
+  status: 'Active' | 'Completed' | 'Paused'
+  createdAt: string
+  updatedAt: string
+  completedAt?: string
+  category?: string // Optional categorization like 'Emergency Fund', 'Investment', 'Purchase', etc.
+  notes?: string
+}
+
+export interface GoalSummary {
+  totalTargetAmount: number
+  totalCurrentAmount: number
+  totalProgressPercentage: number
+  totalActiveGoals: number
+  totalCompletedGoals: number
+  totalProfitAllocated: number
 } 

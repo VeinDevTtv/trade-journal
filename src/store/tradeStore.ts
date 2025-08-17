@@ -1,9 +1,10 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import { Trade, TradeSummary } from '../types/trade'
+import { Trade, TradeSummary, Goal, GoalSummary } from '../types/trade'
 
 interface TradeStore {
   trades: Trade[]
+  goals: Goal[]
   currentMonth: { year: number; month: number }
   addTrade: (trade: Omit<Trade, 'id'>) => void
   updateTrade: (id: string, trade: Partial<Trade>) => void
@@ -17,17 +18,27 @@ interface TradeStore {
   // Integration helpers
   bulkUpsertTrades: (incoming: Omit<Trade, 'id'>[]) => { added: number; updated: number }
   findByExternalId: (externalId: string) => Trade | undefined
+  // Goals management
+  addGoal: (goal: Omit<Goal, 'id' | 'createdAt' | 'updatedAt'>) => void
+  updateGoal: (id: string, goal: Partial<Goal>) => void
+  deleteGoal: (id: string) => void
+  getGoals: () => Goal[]
+  getGoalSummary: () => GoalSummary
+  allocateProfitToGoals: (profitAmount: number) => void
+  getGoalById: (id: string) => Goal | undefined
 }
 
 const generateId = () => Math.random().toString(36).substring(2, 15)
 
 // Initial empty state - users will add their own real trades
 const initialTrades: Trade[] = []
+const initialGoals: Goal[] = []
 
 export const useTradeStore = create<TradeStore>()(
   persist(
     (set, get) => ({
       trades: initialTrades,
+      goals: initialGoals,
       currentMonth: { 
         year: new Date().getFullYear(), 
         month: new Date().getMonth() + 1 
@@ -38,13 +49,34 @@ export const useTradeStore = create<TradeStore>()(
         set((state: TradeStore) => ({
           trades: [...state.trades, newTrade]
         }))
+        
+        // Automatically allocate profits to goals if the trade is profitable
+        if (newTrade.profitLoss > 0) {
+          get().allocateProfitToGoals(newTrade.profitLoss)
+        }
       },
       
-      updateTrade: (id: string, updatedFields: Partial<Trade>) => set((state: TradeStore) => ({
-        trades: state.trades.map((trade: Trade) => 
-          trade.id === id ? { ...trade, ...updatedFields } : trade
-        )
-      })),
+      updateTrade: (id: string, updatedFields: Partial<Trade>) => {
+        const currentState = get()
+        const existingTrade = currentState.trades.find(t => t.id === id)
+        const oldProfitLoss = existingTrade?.profitLoss || 0
+        
+        set((state: TradeStore) => ({
+          trades: state.trades.map((trade: Trade) => 
+            trade.id === id ? { ...trade, ...updatedFields } : trade
+          )
+        }))
+        
+        // Handle profit allocation for updated profit/loss
+        if (updatedFields.profitLoss !== undefined) {
+          const newProfitLoss = updatedFields.profitLoss
+          const profitDifference = newProfitLoss - oldProfitLoss
+          
+          if (profitDifference > 0) {
+            get().allocateProfitToGoals(profitDifference)
+          }
+        }
+      },
       
       deleteTrade: (id: string) => set((state: TradeStore) => ({
         trades: state.trades.filter((trade: Trade) => trade.id !== id)
@@ -140,6 +172,82 @@ export const useTradeStore = create<TradeStore>()(
           return { trades: updatedTrades }
         })
         return { added, updated }
+      },
+
+      // Goals management methods
+      addGoal: (goal: Omit<Goal, 'id' | 'createdAt' | 'updatedAt'>) => {
+        const now = new Date().toISOString()
+        const newGoal: Goal = { 
+          ...goal, 
+          id: generateId(),
+          createdAt: now,
+          updatedAt: now
+        }
+        set((state: TradeStore) => ({
+          goals: [...state.goals, newGoal]
+        }))
+      },
+
+      updateGoal: (id: string, updatedFields: Partial<Goal>) => {
+        const now = new Date().toISOString()
+        set((state: TradeStore) => ({
+          goals: state.goals.map((goal: Goal) => 
+            goal.id === id ? { ...goal, ...updatedFields, updatedAt: now } : goal
+          )
+        }))
+      },
+
+      deleteGoal: (id: string) => set((state: TradeStore) => ({
+        goals: state.goals.filter((goal: Goal) => goal.id !== id)
+      })),
+
+      getGoals: () => get().goals,
+
+      getGoalById: (id: string) => {
+        const { goals } = get()
+        return goals.find(goal => goal.id === id)
+      },
+
+      getGoalSummary: (): GoalSummary => {
+        const { goals } = get()
+        const activeGoals = goals.filter(goal => goal.status === 'Active')
+        const completedGoals = goals.filter(goal => goal.status === 'Completed')
+        
+        const totalTargetAmount = activeGoals.reduce((sum, goal) => sum + goal.targetAmount, 0)
+        const totalCurrentAmount = activeGoals.reduce((sum, goal) => sum + goal.currentAmount, 0)
+        const totalProgressPercentage = totalTargetAmount > 0 ? (totalCurrentAmount / totalTargetAmount) * 100 : 0
+        const totalProfitAllocated = activeGoals.reduce((sum, goal) => sum + goal.profitAllocationPercentage, 0)
+
+        return {
+          totalTargetAmount,
+          totalCurrentAmount,
+          totalProgressPercentage,
+          totalActiveGoals: activeGoals.length,
+          totalCompletedGoals: completedGoals.length,
+          totalProfitAllocated
+        }
+      },
+
+      allocateProfitToGoals: (profitAmount: number) => {
+        if (profitAmount <= 0) return
+        
+        set((state: TradeStore) => ({
+          goals: state.goals.map((goal: Goal) => {
+            if (goal.status !== 'Active') return goal
+            
+            const allocation = (goal.profitAllocationPercentage / 100) * profitAmount
+            const newCurrentAmount = goal.currentAmount + allocation
+            const isCompleted = newCurrentAmount >= goal.targetAmount
+            
+            return {
+              ...goal,
+              currentAmount: newCurrentAmount,
+              status: isCompleted ? 'Completed' as const : goal.status,
+              completedAt: isCompleted ? new Date().toISOString() : goal.completedAt,
+              updatedAt: new Date().toISOString()
+            }
+          })
+        }))
       }
     }),
     {
