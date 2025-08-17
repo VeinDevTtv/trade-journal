@@ -14,7 +14,6 @@ import {
   CheckCircle,
   Clock,
   Pause,
-  PieChart,
   Edit,
   Trash2,
   ArrowLeft,
@@ -216,88 +215,92 @@ export function GoalsView() {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Goals Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3 }}
-        >
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Active Goals</CardTitle>
-              <Target className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{goalSummary.totalActiveGoals}</div>
-              <p className="text-xs text-muted-foreground">
-                {goalSummary.totalCompletedGoals} completed
-              </p>
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3, delay: 0.1 }}
-        >
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Target</CardTitle>
-              <DollarSign className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">${goalSummary.totalTargetAmount.toLocaleString()}</div>
-              <p className="text-xs text-muted-foreground">
-                ${goalSummary.totalCurrentAmount.toLocaleString()} saved
-              </p>
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3, delay: 0.2 }}
-        >
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Overall Progress</CardTitle>
-              <TrendingUp className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{goalSummary.totalProgressPercentage.toFixed(1)}%</div>
-              <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
-                <div 
-                  className="bg-primary h-2 rounded-full transition-all duration-300"
-                  style={{ width: `${Math.min(goalSummary.totalProgressPercentage, 100)}%` }}
-                />
+    <div className="space-y-8 max-w-7xl mx-auto px-4">
+      {/* Header Section */}
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+        className="text-center space-y-4"
+      >
+        <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+          Financial Goals
+        </h1>
+        <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+          Set, track, and achieve your trading and financial objectives with smart goal management
+        </p>
+        
+        {/* Goal Summary Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 max-w-4xl mx-auto">
+          <Card className="border-0 shadow-lg bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20">
+            <CardContent className="p-4 text-center">
+              <div className="flex items-center justify-center gap-2 mb-2">
+                <Target className="h-5 w-5 text-green-600" />
+                <span className="text-sm font-medium text-green-700 dark:text-green-300">Active Goals</span>
+              </div>
+              <div className="text-2xl font-bold text-green-600">
+                {goalSummary.totalActiveGoals}
               </div>
             </CardContent>
           </Card>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3, delay: 0.3 }}
-        >
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Profit Allocation</CardTitle>
-              <PieChart className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{goalSummary.totalProfitAllocated.toFixed(1)}%</div>
-              <p className="text-xs text-muted-foreground">
-                of trading profits
-              </p>
+          
+          <Card className="border-0 shadow-lg bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20">
+            <CardContent className="p-4 text-center">
+              <div className="flex items-center justify-center gap-2 mb-2">
+                <CheckCircle className="h-5 w-5 text-blue-600" />
+                <span className="text-sm font-medium text-blue-700 dark:text-blue-300">Completed</span>
+              </div>
+              <div className="text-2xl font-bold text-blue-600">
+                {goalSummary.totalCompletedGoals}
+              </div>
             </CardContent>
           </Card>
-        </motion.div>
-      </div>
+          
+          <Card className="border-0 shadow-lg bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20">
+            <CardContent className="p-4 text-center">
+              <div className="flex items-center justify-center gap-2 mb-2">
+                <TrendingUp className="h-5 w-5 text-purple-600" />
+                <span className="text-sm font-medium text-purple-700 dark:text-purple-300">Total Progress</span>
+              </div>
+              <div className="text-2xl font-bold text-purple-600">
+                {goalSummary.totalProgressPercentage.toFixed(1)}%
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card className="border-0 shadow-lg bg-gradient-to-br from-yellow-50 to-yellow-100 dark:from-yellow-900/20 dark:to-yellow-800/20">
+            <CardContent className="p-4 text-center">
+              <div className="flex items-center justify-center gap-2 mb-2">
+                <DollarSign className="h-5 w-5 text-yellow-600" />
+                <span className="text-sm font-medium text-yellow-700 dark:text-yellow-300">Total Value</span>
+              </div>
+              <div className="text-2xl font-bold text-yellow-600">
+                ${goalSummary.totalCurrentAmount.toLocaleString()}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Action Buttons */}
+        <div className="flex flex-wrap justify-center gap-4">
+          <Button 
+            onClick={() => setShowAddGoal(true)} 
+            className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg hover:shadow-xl transition-all duration-200"
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Add New Goal
+          </Button>
+          
+          <Button 
+            variant="outline" 
+            onClick={() => setShowArchivedGoals(!showArchivedGoals)}
+            className="hover:shadow-md transition-all duration-200"
+          >
+            <Archive className="h-4 w-4 mr-2" />
+            {showArchivedGoals ? 'Hide Archived' : 'Show Archived'}
+          </Button>
+        </div>
+      </motion.div>
 
       {/* Manual Profit Allocation */}
       {goals.filter(g => g.status === 'Active').length > 0 && (

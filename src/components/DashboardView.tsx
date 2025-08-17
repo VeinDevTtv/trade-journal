@@ -3,6 +3,9 @@ import { motion } from 'framer-motion'
 import { useTradeStore } from '../store/tradeStore'
 import { formatCurrency } from '../lib/utils'
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card'
+import { Badge } from './ui/badge'
+import { Progress } from './ui/progress'
+import { Separator } from './ui/separator'
 import { 
   TrendingUp, 
   DollarSign, 
@@ -10,7 +13,11 @@ import {
   Activity,
   Award,
   BarChart3,
-  PieChart
+  PieChart,
+  Zap,
+  TrendingDown,
+  Calendar,
+  Clock
 } from 'lucide-react'
 import { createStyledExport } from '../lib/exportImage'
 import {
@@ -104,75 +111,56 @@ export function DashboardView() {
         currentLossStreak++
         currentWinStreak = 0
         consecutiveLosses = Math.max(consecutiveLosses, currentLossStreak)
-      }
-    })
-
-    // Daily P&L chart data
-    const dailyPnL = trades.reduce((acc, trade) => {
-      const date = trade.date
-      const existing = acc.find(item => item.date === date)
-      if (existing) {
-        existing.pnl += trade.profitLoss
-        existing.trades += 1
       } else {
-        acc.push({
-          date,
-          pnl: trade.profitLoss,
-          trades: 1,
-          day: new Date(date).getDate()
-        })
-      }
-      return acc
-    }, [] as Array<{date: string, pnl: number, trades: number, day: number}>)
-    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-
-    // Cumulative P&L
-    let cumulativeSum = 0
-    const cumulativePnL = dailyPnL.map(item => {
-      cumulativeSum += item.pnl
-      return {
-        ...item,
-        cumulative: cumulativeSum
+        currentWinStreak = 0
+        currentLossStreak = 0
       }
     })
 
-    // Pair performance
-    const pairPerformance = Object.entries(
-      trades.reduce((acc, trade) => {
-        if (!trade.pair) return acc
-        if (!acc[trade.pair]) {
-          acc[trade.pair] = { wins: 0, losses: 0, totalPnL: 0, trades: 0 }
-        }
-        acc[trade.pair].totalPnL += trade.profitLoss
-        acc[trade.pair].trades += 1
-        if (trade.result === 'Win') acc[trade.pair].wins += 1
-        if (trade.result === 'Loss') acc[trade.pair].losses += 1
-        return acc
-      }, {} as Record<string, {wins: number, losses: number, totalPnL: number, trades: number}>)
-    ).map(([pair, data]) => ({
+    // Calculate trading days
+    const uniqueDays = new Set(trades.map(t => new Date(t.date).toDateString()))
+    const tradingDays = uniqueDays.size
+
+    // Calculate daily P&L
+    const dailyPnL = Array.from(uniqueDays).map(dayStr => {
+      const dayTrades = trades.filter(t => new Date(t.date).toDateString() === dayStr)
+      const dayPnL = dayTrades.reduce((sum, t) => sum + t.profitLoss, 0)
+      return { day: new Date(dayStr).getDate(), pnl: dayPnL }
+    }).sort((a, b) => a.day - b.day)
+
+    // Calculate pair performance
+    const pairMap = new Map()
+    trades.forEach(trade => {
+      const pair = trade.pair || 'Unknown'
+      if (!pairMap.has(pair)) {
+        pairMap.set(pair, { trades: 0, wins: 0, totalPnL: 0 })
+      }
+      const pairData = pairMap.get(pair)
+      pairData.trades++
+      pairData.totalPnL += trade.profitLoss
+      if (trade.result === 'Win') pairData.wins++
+    })
+
+    const pairPerformance = Array.from(pairMap.entries()).map(([pair, data]: [string, any]) => ({
       pair,
-      ...data,
-      winRate: data.trades > 0 ? (data.wins / data.trades) * 100 : 0
+      trades: data.trades,
+      winRate: (data.wins / data.trades) * 100,
+      totalPnL: data.totalPnL
     })).sort((a, b) => b.totalPnL - a.totalPnL)
 
-    // Time distribution based on actual trade times
-    const getSessionFromTime = (timeStr?: string) => {
-      if (!timeStr) return 'Unknown'
-      const [hours] = timeStr.split(':').map(Number)
-      
-      // Trading sessions based on UTC hours
-      if (hours >= 0 && hours < 8) return 'Asia'
-      if (hours >= 8 && hours < 16) return 'London' 
-      if (hours >= 16 && hours < 24) return 'New York'
-      return 'Unknown'
-    }
-    
-    const timeDistribution = [
-      { time: 'Asia', trades: trades.filter(t => getSessionFromTime(t.time) === 'Asia').length },
-      { time: 'London', trades: trades.filter(t => getSessionFromTime(t.time) === 'London').length },
-      { time: 'New York', trades: trades.filter(t => getSessionFromTime(t.time) === 'New York').length },
-      { time: 'Unknown', trades: trades.filter(t => getSessionFromTime(t.time) === 'Unknown').length }
-    ].filter(item => item.trades > 0) // Only show sessions with trades
+    // Calculate cumulative P&L
+    const cumulativePnL = dailyPnL.map((day, index) => {
+      const cumulative = dailyPnL.slice(0, index + 1).reduce((sum, d) => sum + d.pnl, 0)
+      return { day: day.day, cumulative }
+    })
+
+    // Calculate time distribution
+    const timeDistribution = trades.reduce((acc, trade) => {
+      const hour = new Date(trade.date).getHours()
+      const timeSlot = hour < 12 ? 'Morning' : hour < 17 ? 'Afternoon' : 'Evening'
+      acc[timeSlot] = (acc[timeSlot] || 0) + 1
+      return acc
+    }, {} as Record<string, number>)
 
     return {
       wins: wins.length,
@@ -185,7 +173,7 @@ export function DashboardView() {
       largestLoss,
       consecutiveWins,
       consecutiveLosses,
-      tradingDays: new Set(trades.map(t => t.date)).size,
+      tradingDays,
       dailyPnL,
       pairPerformance,
       cumulativePnL,
@@ -199,28 +187,32 @@ export function DashboardView() {
       value: formatCurrency(summary.totalProfitLoss),
       change: trades.length > 0 ? (summary.totalProfitLoss >= 0 ? "Profit" : "Loss") : "No trades yet",
       icon: DollarSign,
-      color: summary.totalProfitLoss >= 0 ? "text-green-600" : "text-red-600"
+      color: summary.totalProfitLoss >= 0 ? "text-green-600" : "text-red-600",
+              variant: summary.totalProfitLoss >= 0 ? "success" : "destructive"
     },
     {
       title: "Win Rate",
       value: `${summary.winRate.toFixed(1)}%`,
       change: trades.length > 0 ? `${trades.length} trades` : "No data",
       icon: Target,
-      color: "text-blue-600"
+      color: "text-blue-600",
+      variant: "info" as const
     },
     {
       title: "Total Trades",
       value: summary.totalTrades.toString(),
       change: `${analytics.tradingDays} days`,
       icon: Activity,
-      color: "text-purple-600"
+      color: "text-purple-600",
+      variant: "secondary" as const
     },
     {
       title: "Profit Factor",
       value: analytics.profitFactor.toFixed(2),
       change: analytics.profitFactor > 1 ? "Profitable" : "Improve",
       icon: TrendingUp,
-      color: analytics.profitFactor > 1 ? "text-green-600" : "text-orange-600"
+      color: analytics.profitFactor > 1 ? "text-green-600" : "text-orange-600",
+      variant: analytics.profitFactor > 1 ? "success" : "warning" as const
     }
   ]
 
@@ -231,7 +223,32 @@ export function DashboardView() {
   ].filter(item => item.value > 0)
 
   return (
-    <div className="space-y-8" ref={dashboardRef}>
+    <div className="space-y-8 max-w-7xl mx-auto px-4" ref={dashboardRef}>
+      {/* Header Section */}
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+        className="text-center space-y-4"
+      >
+        <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+          Trading Dashboard
+        </h1>
+        <p className="text-xl text-muted-foreground">
+          {currentMonth.year} - {currentMonth.month.toString().padStart(2, '0')}
+        </p>
+        <div className="flex justify-center gap-2">
+          <Badge variant="outline" className="text-sm">
+            <Calendar className="w-3 h-3 mr-1" />
+            {analytics.tradingDays} Trading Days
+          </Badge>
+          <Badge variant="outline" className="text-sm">
+            <Clock className="w-3 h-3 mr-1" />
+            {trades.length} Total Trades
+          </Badge>
+        </div>
+      </motion.div>
+
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {statsCards.map((stat, index) => {
@@ -243,18 +260,18 @@ export function DashboardView() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: index * 0.1 }}
             >
-              <Card className="relative overflow-hidden hover:shadow-lg transition-all duration-300 border-0 bg-gradient-to-br from-card to-card/80">
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-muted-foreground">{stat.title}</p>
-                      <div className="flex items-center gap-2 mt-2">
-                        <p className={`text-2xl font-bold ${stat.color}`}>{stat.value}</p>
-                      </div>
-                      <p className="text-xs text-muted-foreground mt-1">{stat.change}</p>
+              <Card className="relative overflow-hidden hover:shadow-xl transition-all duration-300 border-0 bg-gradient-to-br from-card to-card/80 group">
+                <CardContent className="p-6 text-center">
+                  <div className="flex flex-col items-center space-y-4">
+                    <div className={`p-4 rounded-full bg-gradient-to-br from-${stat.color.split('-')[1]}-100 to-${stat.color.split('-')[1]}-50 group-hover:scale-110 transition-transform duration-300`}>
+                      <Icon className={`h-8 w-8 ${stat.color}`} />
                     </div>
-                    <div className={`p-3 rounded-lg bg-gradient-to-br from-${stat.color.split('-')[1]}-100 to-${stat.color.split('-')[1]}-50`}>
-                      <Icon className={`h-6 w-6 ${stat.color}`} />
+                    <div className="space-y-2">
+                      <p className="text-sm font-medium text-muted-foreground">{stat.title}</p>
+                      <p className={`text-3xl font-bold ${stat.color}`}>{stat.value}</p>
+                      <Badge variant={stat.variant as any} className="text-xs">
+                        {stat.change}
+                      </Badge>
                     </div>
                   </div>
                 </CardContent>
@@ -264,7 +281,7 @@ export function DashboardView() {
         })}
       </div>
 
-        {/* Charts Section + Export */}
+      {/* Charts Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Cumulative P&L Chart */}
         <motion.div
@@ -272,10 +289,10 @@ export function DashboardView() {
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.6, delay: 0.2 }}
         >
-          <Card className="border-0 shadow-lg">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <TrendingUp className="h-5 w-5" />
+          <Card className="border-0 shadow-xl hover:shadow-2xl transition-all duration-300">
+            <CardHeader className="text-center">
+              <CardTitle className="flex items-center justify-center gap-2">
+                <TrendingUp className="h-6 w-6 text-blue-600" />
                 Cumulative P&L
               </CardTitle>
             </CardHeader>
@@ -301,8 +318,9 @@ export function DashboardView() {
                         contentStyle={{
                           backgroundColor: '#1f2937',
                           border: '1px solid #374151',
-                          borderRadius: '8px',
-                          color: '#f9fafb'
+                          borderRadius: '12px',
+                          color: '#f9fafb',
+                          boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)'
                         }}
                       />
                       <defs>
@@ -315,14 +333,17 @@ export function DashboardView() {
                         type="monotone" 
                         dataKey="cumulative" 
                         stroke="#3b82f6" 
-                        strokeWidth={2}
+                        strokeWidth={3}
                         fill="url(#colorPnL)"
                       />
                     </AreaChart>
                   </ResponsiveContainer>
                 ) : (
-                  <div className="flex items-center justify-center h-full text-muted-foreground">
-                    No trading data available
+                  <div className="flex items-center justify-center h-full text-muted-foreground text-center">
+                    <div className="space-y-2">
+                      <BarChart3 className="h-12 w-12 mx-auto opacity-50" />
+                      <p>No trading data available</p>
+                    </div>
                   </div>
                 )}
               </div>
@@ -336,10 +357,10 @@ export function DashboardView() {
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.6, delay: 0.3 }}
         >
-          <Card className="border-0 shadow-lg">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <PieChart className="h-5 w-5" />
+          <Card className="border-0 shadow-xl hover:shadow-2xl transition-all duration-300">
+            <CardHeader className="text-center">
+              <CardTitle className="flex items-center justify-center gap-2">
+                <PieChart className="h-6 w-6 text-purple-600" />
                 Trade Results
               </CardTitle>
             </CardHeader>
@@ -352,9 +373,9 @@ export function DashboardView() {
                         data={pieData}
                         cx="50%"
                         cy="50%"
-                        innerRadius={60}
-                        outerRadius={100}
-                        paddingAngle={5}
+                        innerRadius={70}
+                        outerRadius={110}
+                        paddingAngle={8}
                         dataKey="value"
                       >
                         {pieData.map((entry, index) => (
@@ -366,29 +387,33 @@ export function DashboardView() {
                         contentStyle={{
                           backgroundColor: '#1f2937',
                           border: '1px solid #374151',
-                          borderRadius: '8px',
-                          color: '#f9fafb'
+                          borderRadius: '12px',
+                          color: '#f9fafb',
+                          boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)'
                         }}
                       />
                     </RechartsPieChart>
                   </ResponsiveContainer>
                 ) : (
-                  <div className="flex items-center justify-center h-full text-muted-foreground">
-                    No trades to display
+                  <div className="flex items-center justify-center h-full text-muted-foreground text-center">
+                    <div className="space-y-2">
+                      <PieChart className="h-12 w-12 mx-auto opacity-50" />
+                      <p>No trades to display</p>
+                    </div>
                   </div>
                 )}
               </div>
               
               {/* Legend */}
               {pieData.length > 0 && (
-                <div className="flex justify-center gap-4 mt-4">
+                <div className="flex justify-center gap-6 mt-6">
                   {pieData.map((item, index) => (
                     <div key={index} className="flex items-center gap-2">
                       <div 
-                        className="w-3 h-3 rounded-full"
+                        className="w-4 h-4 rounded-full shadow-sm"
                         style={{ backgroundColor: item.color }}
                       />
-                      <span className="text-sm text-muted-foreground">
+                      <span className="text-sm font-medium text-muted-foreground">
                         {item.name}: {item.value}
                       </span>
                     </div>
@@ -409,10 +434,10 @@ export function DashboardView() {
           transition={{ duration: 0.6, delay: 0.4 }}
           className="lg:col-span-2"
         >
-          <Card className="border-0 shadow-lg">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <BarChart3 className="h-5 w-5" />
+          <Card className="border-0 shadow-xl hover:shadow-2xl transition-all duration-300">
+            <CardHeader className="text-center">
+              <CardTitle className="flex items-center justify-center gap-2">
+                <BarChart3 className="h-6 w-6 text-green-600" />
                 Daily P&L Performance
               </CardTitle>
             </CardHeader>
@@ -438,20 +463,24 @@ export function DashboardView() {
                         contentStyle={{
                           backgroundColor: '#1f2937',
                           border: '1px solid #374151',
-                          borderRadius: '8px',
-                          color: '#f9fafb'
+                          borderRadius: '12px',
+                          color: '#f9fafb',
+                          boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)'
                         }}
                       />
                       <Bar 
                         dataKey="pnl" 
-                        fill="#3b82f6"
-                        radius={[4, 4, 0, 0]}
+                        fill="#10b981"
+                        radius={[6, 6, 0, 0]}
                       />
                     </BarChart>
                   </ResponsiveContainer>
                 ) : (
-                  <div className="flex items-center justify-center h-full text-muted-foreground">
-                    No daily data available
+                  <div className="flex items-center justify-center h-full text-muted-foreground text-center">
+                    <div className="space-y-2">
+                      <BarChart3 className="h-12 w-12 mx-auto opacity-50" />
+                      <p>No daily data available</p>
+                    </div>
                   </div>
                 )}
               </div>
@@ -465,32 +494,40 @@ export function DashboardView() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.5 }}
         >
-          <Card className="border-0 shadow-lg">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Award className="h-5 w-5" />
+          <Card className="border-0 shadow-xl hover:shadow-2xl transition-all duration-300">
+            <CardHeader className="text-center">
+              <CardTitle className="flex items-center justify-center gap-2">
+                <Award className="h-6 w-6 text-yellow-600" />
                 Top Pairs
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {analytics.pairPerformance.slice(0, 5).map((pair) => (
-                  <div key={pair.pair} className="flex items-center justify-between">
-                    <div>
-                      <p className="font-medium">{pair.pair || 'Unknown'}</p>
-                      <p className="text-sm text-muted-foreground">
-                        {pair.trades} trades • {pair.winRate.toFixed(0)}% win rate
-                      </p>
+                {analytics.pairPerformance.slice(0, 5).map((pair, index) => (
+                  <div key={pair.pair} className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Badge variant="outline" className="text-xs">
+                          #{index + 1}
+                        </Badge>
+                        <span className="font-medium">{pair.pair || 'Unknown'}</span>
+                      </div>
+                      <div className={`text-right font-bold ${pair.totalPnL >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                        {formatCurrency(pair.totalPnL)}
+                      </div>
                     </div>
-                    <div className={`text-right ${pair.totalPnL >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                      <p className="font-bold">{formatCurrency(pair.totalPnL)}</p>
+                    <div className="flex items-center justify-between text-sm text-muted-foreground">
+                      <span>{pair.trades} trades</span>
+                      <span>{pair.winRate.toFixed(0)}% win rate</span>
                     </div>
+                    <Progress value={pair.winRate} className="h-2" />
                   </div>
                 ))}
                 {analytics.pairPerformance.length === 0 && (
-                  <p className="text-muted-foreground text-center py-8">
-                    No pair data available
-                  </p>
+                  <div className="text-center py-8">
+                    <Award className="h-12 w-12 mx-auto opacity-50 mb-2" />
+                    <p className="text-muted-foreground">No pair data available</p>
+                  </div>
                 )}
               </div>
             </CardContent>
@@ -504,13 +541,13 @@ export function DashboardView() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, delay: 0.6 }}
       >
-        <Card className="border-0 shadow-lg">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Activity className="h-5 w-5" />
+        <Card className="border-0 shadow-xl hover:shadow-2xl transition-all duration-300">
+          <CardHeader className="text-center">
+            <CardTitle className="flex items-center justify-center gap-2">
+              <Zap className="h-6 w-6 text-blue-600" />
               Advanced Trading Metrics
               <button
-                className="ml-auto text-sm underline text-primary hover:text-primary/80"
+                className="ml-auto text-sm underline text-primary hover:text-primary/80 transition-colors duration-200"
                 onClick={async () => {
                   const exportData = {
                     title: 'Trading Dashboard',
@@ -536,50 +573,56 @@ export function DashboardView() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              <div className="text-center p-4 bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 rounded-lg">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+              <div className="text-center p-6 bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 rounded-xl border border-green-200 dark:border-green-800/30">
+                <TrendingUp className="h-8 w-8 text-green-600 mx-auto mb-2" />
                 <p className="text-2xl font-bold text-green-600">{formatCurrency(analytics.avgWin)}</p>
                 <p className="text-sm text-muted-foreground">Average Win</p>
               </div>
-              <div className="text-center p-4 bg-gradient-to-br from-red-50 to-red-100 dark:from-red-900/20 dark:to-red-800/20 rounded-lg">
+              <div className="text-center p-6 bg-gradient-to-br from-red-50 to-red-100 dark:from-red-900/20 dark:to-red-800/20 rounded-xl border border-red-200 dark:border-red-800/30">
+                <TrendingDown className="h-8 w-8 text-red-600 mx-auto mb-2" />
                 <p className="text-2xl font-bold text-red-600">{formatCurrency(analytics.avgLoss)}</p>
                 <p className="text-sm text-muted-foreground">Average Loss</p>
               </div>
-              <div className="text-center p-4 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 rounded-lg">
+              <div className="text-center p-6 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 rounded-xl border border-blue-200 dark:border-blue-800/30">
+                <Target className="h-8 w-8 text-blue-600 mx-auto mb-2" />
                 <p className="text-2xl font-bold text-blue-600">{analytics.consecutiveWins}</p>
                 <p className="text-sm text-muted-foreground">Max Win Streak</p>
               </div>
-              <div className="text-center p-4 bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 rounded-lg">
+              <div className="text-center p-6 bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 rounded-xl border border-purple-200 dark:border-purple-800/30">
+                <Award className="h-8 w-8 text-purple-600 mx-auto mb-2" />
                 <p className="text-2xl font-bold text-purple-600">{formatCurrency(analytics.largestWin)}</p>
                 <p className="text-sm text-muted-foreground">Best Trade</p>
               </div>
             </div>
 
+            <Separator className="my-8" />
+
             {/* Profitability Checklist */}
-            <div className="mt-8">
-              <h3 className="text-lg font-semibold mb-3">Profitability Checklist</h3>
-              <ul className="space-y-2 text-sm">
-                <li className="flex items-start gap-2">
-                  <span className="mt-1 h-2 w-2 rounded-full bg-emerald-500"></span>
-                  Followed a written plan before entering each trade
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="mt-1 h-2 w-2 rounded-full bg-emerald-500"></span>
-                  Risk per trade ≤ 1% and documented R:R
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="mt-1 h-2 w-2 rounded-full bg-emerald-500"></span>
-                  Took only A+ setups during your active session
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="mt-1 h-2 w-2 rounded-full bg-emerald-500"></span>
-                  Logged emotions and lesson per trade
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="mt-1 h-2 w-2 rounded-full bg-emerald-500"></span>
-                  Stopped trading after daily max loss hit
-                </li>
-              </ul>
+            <div className="text-center">
+              <h3 className="text-xl font-semibold mb-6 text-center">Profitability Checklist</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-w-4xl mx-auto">
+                <div className="flex items-start gap-3 p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800/30">
+                  <span className="mt-1 h-3 w-3 rounded-full bg-emerald-500 flex-shrink-0"></span>
+                  <span className="text-sm text-left">Followed a written plan before entering each trade</span>
+                </div>
+                <div className="flex items-start gap-3 p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800/30">
+                  <span className="mt-1 h-3 w-3 rounded-full bg-emerald-500 flex-shrink-0"></span>
+                  <span className="text-sm text-left">Risk per trade ≤ 1% and documented R:R</span>
+                </div>
+                <div className="flex items-start gap-3 p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800/30">
+                  <span className="mt-1 h-3 w-3 rounded-full bg-emerald-500 flex-shrink-0"></span>
+                  <span className="text-sm text-left">Took only A+ setups during your active session</span>
+                </div>
+                <div className="flex items-start gap-3 p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800/30">
+                  <span className="mt-1 h-3 w-3 rounded-full bg-emerald-500 flex-shrink-0"></span>
+                  <span className="text-sm text-left">Logged emotions and lesson per trade</span>
+                </div>
+                <div className="flex items-start gap-3 p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800/30">
+                  <span className="mt-1 h-3 w-3 rounded-full bg-emerald-500 flex-shrink-0"></span>
+                  <span className="text-sm text-left">Stopped trading after daily max loss hit</span>
+                </div>
+              </div>
             </div>
           </CardContent>
         </Card>
